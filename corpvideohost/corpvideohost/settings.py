@@ -31,12 +31,19 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
+    "rest_framework",
+    "corsheaders",
+    "storages",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "main",
+    "video",
+    "user",
+    "userprofile",
 ]
 
 MIDDLEWARE = [
@@ -47,10 +54,30 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
-ROOT_URLCONF = "corpvideohost.urls"
 
+CORS_ALLOWED_ORIGINS = [
+    "http://192.168.0.10:3000",
+    "http://localhost:3000",
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+# ----Yandex s3----
+DEFAULT_FILE_STORAGE = (
+    "yandex_s3_storage.ClientDocsStorage"  # path to file we created before
+)
+YANDEX_CLIENT_DOCS_BUCKET_NAME = "client-docs"
+AWS_ACCESS_KEY_ID = "ajevgitfdumbmcbvvo9m"
+AWS_SECRET_ACCESS_KEY = "AQVN34S69vrLsxf_4Tb26QlWEltFikfE-9Dj3lvs"
+AWS_S3_ENDPOINT_URL = "https://storage.yandexcloud.net"
+AWS_S3_REGION_NAME = "ru-central1"
+
+
+ROOT_URLCONF = "corpvideohost.urls"
+# pg_ctl -D "C:\Program Files\PostgreSQL\16\data" restart
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -80,7 +107,8 @@ DATABASES = {
         "USER": "postgres",
         "PASSWORD": "123",
         "HOST": "127.0.0.1",
-        "PORT": "5433",
+        "PORT": "5000",
+        "OPTIONS": {"options": "-c search_path=public"},
     }
 }
 
@@ -106,7 +134,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "ru-ru"
 
 TIME_ZONE = "UTC"
 
@@ -119,7 +147,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
+MEDIA_URL = "media/"
+
+MEDIA_ROOT = BASE_DIR / "media"
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 

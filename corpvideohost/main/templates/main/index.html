@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Главное меню</title>
+		<link rel="stylesheet" href="{% static "css/main.css" %}">
+	</head>
+	<body>
+		<div class="sidebar">
+			<div class="logo">
+				<img src="video_hosting_logo.png" alt="Video Hosting Logo" />
+			</div>
+			<div class="groups">
+				<h2>Группы</h2>
+				<ul>
+					<li>Группа 1</li>
+					<li>Группа 2</li>
+					<li>Группа 3</li>
+					<!-- Добавьте здесь динамическое создание списка групп пользователя -->
+				</ul>
+			</div>
+		</div>
+		<div class="main-content">
+			<div class="top-nav">
+				<div class="tabs">
+					<a href="#" class="active">Главная</a>
+					<a href="#">Избранное</a>
+					<a href="#">История просмотра</a>
+				</div>
+				<div class="search-bar">
+					<input type="text" placeholder="Поиск..." />
+					<button>Найти</button>
+				</div>
+				<div class="user-profile">
+					<img src="user_avatar.png" alt="User Avatar" />
+					<!-- Добавьте здесь имя пользователя или другую информацию о профиле -->
+				</div>
+			</div>
+			<div class="videos-list">
+				<!-- Добавьте здесь динамическое создание списка видео -->
+				<div class="video-group">
+					<img src="group_icon.png" alt="Group Icon" />
+					<h3>Группа 1</h3>
+					<ul>
+						<li>Видео 1</li>
+						<li>Видео 2</li>
+						<li>Видео 3</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
