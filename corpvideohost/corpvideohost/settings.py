@@ -10,7 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -65,15 +69,23 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-# ----Yandex s3----
-DEFAULT_FILE_STORAGE = (
-    "yandex_s3_storage.ClientDocsStorage"  # path to file we created before
-)
-YANDEX_CLIENT_DOCS_BUCKET_NAME = "client-docs"
-AWS_ACCESS_KEY_ID = "ajevgitfdumbmcbvvo9m"
-AWS_SECRET_ACCESS_KEY = "AQVN34S69vrLsxf_4Tb26QlWEltFikfE-9Dj3lvs"
-AWS_S3_ENDPOINT_URL = "https://storage.yandexcloud.net"
+AWS_ENDPOINT = os.getenv("DJANGO_AWS_ENDPOINT")
+AWS_STORAGE_BUCKET_NAME = os.getenv("YANDEX_STORAGE_BUCKET_NAME")
+AWS_STORAGE_ACCESS_KEY_ID = os.getenv("YANDEX_STORAGE_ACCESS_KEY_ID")
+AWS_STORAGE_SECRET_ACCESS_KEY = os.getenv("YANDEX_STORAGE_SECRET_ACCESS_KEY")
+AWS_DEFAULT_ACL = None
 AWS_S3_REGION_NAME = "ru-central1"
+AWS_S3_ENDPOINT_URL = "https://storage.yandexcloud.net"
+AWS_QUERYSTRING_AUTH = False
+
+DEFAULT_FILE_STORAGE = "config.settings.production.MediaRootS3Boto3Storage"
+MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.{AWS_ENDPOINT}/media/"
+
+_AWS_EXPIRY = 60 * 60 * 24 * 7
+# https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html#settings
+AWS_S3_OBJECT_PARAMETERS = {
+    "CacheControl": f"max-age={_AWS_EXPIRY}, s-maxage={_AWS_EXPIRY}, must-revalidate",
+}
 
 
 ROOT_URLCONF = "corpvideohost.urls"

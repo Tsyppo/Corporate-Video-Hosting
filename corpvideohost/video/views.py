@@ -15,7 +15,7 @@ def video_list(request):
             video = Video.objects.create(
                 title=request.data.get("title"),
                 description=request.data.get("description"),
-                video_url=video_file,  # Устанавливаем URL видео на загруженный файл
+                video=video_file,  # Устанавливаем URL видео на загруженный файл
                 status=request.data.get("status"),
             )
             serializer = VideoSerializer(video)

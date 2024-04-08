@@ -1,7 +1,16 @@
 from django.db import models
 
-from corpvideohost.yandex_s3_storage import ClientDocsStorage
+
+from corpvideohost import settings
 from user.models import User
+
+from storages.backends.s3boto3 import S3Boto3Storage
+
+
+class YandexStorage(S3Boto3Storage):
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+    access_key = settings.AWS_STORAGE_ACCESS_KEY_ID
+    secret_key = settings.AWS_STORAGE_SECRET_ACCESS_KEY
 
 
 class VideoStatus(models.TextChoices):
@@ -14,7 +23,7 @@ class Video(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
     upload_date = models.DateTimeField(auto_now_add=True)
-    video_url = models.FileField(storage=ClientDocsStorage())
+    video = models.FileField(storage=YandexStorage())
     status = models.CharField(
         max_length=20, choices=VideoStatus.choices, default=VideoStatus.UNLISTED
     )

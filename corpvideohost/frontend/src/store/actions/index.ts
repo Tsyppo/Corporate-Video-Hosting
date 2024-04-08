@@ -2,5 +2,5 @@
 import * as VideoActions from './videoActions'
 
 export default {
-	...VideoActions,
+    ...VideoActions,
 }
