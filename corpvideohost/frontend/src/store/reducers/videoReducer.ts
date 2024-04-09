@@ -2,6 +2,7 @@ import { VideoAction, VideoState, VideoActionTypes } from '../../types/video'
 
 const initialState: VideoState = {
     videos: null,
+    searchTerm: '',
 }
 
 export const videoReducer = (
@@ -22,7 +23,6 @@ export const videoReducer = (
                     : [action.payload],
             }
         case VideoActionTypes.DELETE_VIDEO:
-            // Удаляем видео из списка по идентификатору
             return {
                 ...state,
                 videos: state.videos
@@ -30,6 +30,11 @@ export const videoReducer = (
                           (video) => video.id !== action.payload,
                       )
                     : null,
+            }
+        case VideoActionTypes.SET_SEARCH_TERM:
+            return {
+                ...state,
+                searchTerm: action.payload,
             }
         default:
             return state

@@ -21,7 +21,7 @@ export const fetchVideoList = () => {
 export const uploadVideo = (formData: FormData) => {
     return async (dispatch: Dispatch<VideoAction>) => {
         try {
-            const response = await axios.post(
+            const response = await axios.post<Video>(
                 'http://127.0.0.1:8000/api/videos/',
                 formData,
                 {
@@ -53,5 +53,14 @@ export const deleteVideo = (videoId: number) => {
         } catch (error) {
             console.error('Error deleting video:', error)
         }
+    }
+}
+
+export const setSearchTerm = (searchTerm: string) => {
+    return (dispatch: Dispatch<VideoAction>) => {
+        dispatch({
+            type: VideoActionTypes.SET_SEARCH_TERM,
+            payload: searchTerm,
+        })
     }
 }
