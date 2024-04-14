@@ -1,4 +1,4 @@
-import { UserState, UserAction, UserActionTypes } from '../../types/user'
+import { UserState, UserAction, UserActionTypes, User } from '../../types/user'
 
 const initialState: UserState = {
     user: null,
@@ -7,6 +7,8 @@ const initialState: UserState = {
 }
 
 const userReducer = (state = initialState, action: UserAction): UserState => {
+    let isValidUser: boolean // Moved declaration outside the switch statement
+
     switch (action.type) {
         case UserActionTypes.FETCH_USER_REQUEST:
             return {

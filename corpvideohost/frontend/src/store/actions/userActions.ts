@@ -1,9 +1,16 @@
 import axios from 'axios'
 import { Dispatch } from 'redux'
 import { UserActionTypes, UserAction, User } from '../../types/user'
+import { RootState } from '../reducers'
+import { useTypedSelector } from '../../hooks/useTypedSelector'
+import { createAsyncThunk } from '@reduxjs/toolkit'
 
 export const loginUser = (username: string, password: string) => {
-    return async (dispatch: Dispatch<UserAction>) => {
+    return async (
+        dispatch: Dispatch<UserAction>,
+        getState: () => RootState,
+    ) => {
+        // Добавляем getState
         dispatch({ type: UserActionTypes.FETCH_USER_REQUEST })
 
         try {
@@ -18,9 +25,10 @@ export const loginUser = (username: string, password: string) => {
                 localStorage.setItem('token', response.data.refresh)
                 dispatch({
                     type: UserActionTypes.FETCH_USER_SUCCESS,
-                    payload: response.data,
+                    payload: response.data.user,
                 })
-                window.location.assign('http://localhost:3000/main')
+                localStorage.setItem('user', JSON.stringify(response.data.user))
+                window.location.href = '/main'
             } else {
                 dispatch({
                     type: UserActionTypes.FETCH_USER_FAILURE,
@@ -44,12 +52,8 @@ export const loginUserSuccess = (token: string) => ({
 // Action creator для выполнения логаута
 export const logoutUser = () => {
     return async (dispatch: Dispatch) => {
-        // Удаление токена из локального хранилища
         localStorage.removeItem('token')
         window.location.assign('http://localhost:3000/login')
-        // Очистка информации о пользователе из состояния Redux
         dispatch({ type: UserActionTypes.LOGOUT_USER })
-
-        // Дополнительные шаги, если необходимо
     }
 }

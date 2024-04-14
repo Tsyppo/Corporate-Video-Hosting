@@ -2,11 +2,11 @@ import axios from 'axios'
 import { Dispatch } from 'redux'
 import { Video, VideoAction, VideoActionTypes } from '../../types/video'
 
-export const fetchVideoList = () => {
+export const fetchVideoList = (user: number) => {
     return async (dispatch: Dispatch<VideoAction>) => {
         try {
             const response = await axios.get<Video[]>(
-                'http://127.0.0.1:8000/api/videos/',
+                `http://127.0.0.1:8000/api/videos/?user=${user}`,
             )
             dispatch({
                 type: VideoActionTypes.FETCH_VIDEO_LIST_SUCCESS,

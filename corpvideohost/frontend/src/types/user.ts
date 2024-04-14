@@ -1,16 +1,15 @@
 export interface User {
-    token: any
     id: number
+    email: string
     username: string
     first_name: string
     last_name: string
     patronymic: string
     phone_number: string
-    email: string
-    avatar?: string
-    registration_date: string
+    avatar: string | null
     role: UserRole
     status: UserStatus
+    registration_date: Date
 }
 
 export interface UserState {

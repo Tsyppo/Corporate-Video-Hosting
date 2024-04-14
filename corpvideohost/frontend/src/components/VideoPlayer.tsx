@@ -12,9 +12,18 @@ const VideoPlace = styled.video`
 const VideoPlayer: React.FC = () => {
     const { fetchVideoList, deleteVideo } = useActions()
     const videos = useTypedSelector((state) => state.video.videos)
+    const user = localStorage.getItem('user')
+    let userObjectFromStorage: any | null = null
+
+    if (user !== null) {
+        userObjectFromStorage = JSON.parse(user)
+        console.log(userObjectFromStorage)
+    } else {
+        console.log('Объект пользователя отсутствует в localStorage')
+    }
 
     useEffect(() => {
-        fetchVideoList()
+        fetchVideoList(userObjectFromStorage.id)
     }, [])
 
     const handleDelete = (videoId: number) => {

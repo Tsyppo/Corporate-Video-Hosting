@@ -1,3 +1,4 @@
+from django.contrib.auth import login
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
@@ -12,16 +13,16 @@ from rest_framework_simplejwt.tokens import TokenError, RefreshToken
 def user_login(request):
     username = request.data.get("username")
     password = request.data.get("password")
-
     try:
         user = User.objects.get(username=username)
         if check_password(password, user.password):
             refresh = RefreshToken.for_user(user)
+            user_serializer = UserSerializer(user)
             return Response(
                 {
                     "message": "Successfully logged in",
                     "refresh": str(refresh),
-                    "access": str(refresh.access_token),
+                    "user": user_serializer.data,
                 },
                 status=status.HTTP_200_OK,
             )

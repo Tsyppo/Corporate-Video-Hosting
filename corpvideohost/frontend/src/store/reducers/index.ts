@@ -1,12 +1,12 @@
 import { combineReducers } from 'redux'
 import { videoReducer } from './videoReducer'
 import settingsReducer from './settingsReducer'
-import useReducer from './userReducer'
+import userReducer from './userReducer'
 
 export const rootReducer = combineReducers({
     video: videoReducer,
     settings: settingsReducer,
-    user: useReducer,
+    user: userReducer,
 })
 
 export type RootState = ReturnType<typeof rootReducer>

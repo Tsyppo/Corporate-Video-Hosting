@@ -1,32 +1,51 @@
 import requests
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+
+from user.models import User
 from .models import Video, ViewHistory, Comment
 from .serializers import VideoSerializer, ViewHistorySerializer, CommentSerializer
 
 
 @api_view(["GET", "POST"])
 def video_list(request):
-    if request.method == "POST":
+    if request.method == "GET":
+        user_id = request.GET.get("user")
+        if user_id is not None:
+            videos = Video.objects.filter(creator_id=user_id)
+            serializer = VideoSerializer(videos, many=True)
+            return Response(serializer.data)
+        else:
+            return Response(
+                {"error": "User ID not provided"}, status=status.HTTP_400_BAD_REQUEST
+            )
+    elif request.method == "POST":
         video_file = request.FILES.get("video")
         if video_file:
-            # Сохраняем видео в облачное хранилище (Yandex Object Storage)
-            video = Video.objects.create(
-                title=request.data.get("title"),
-                description=request.data.get("description"),
-                video=video_file,  # Устанавливаем URL видео на загруженный файл
-                status=request.data.get("status"),
+            # Получаем данные пользователя из запроса
+            user_id = request.data.get("creator")
+            # Ищем пользователя по его id
+            creator = User.objects.filter(id=user_id).first()
+            if creator is not None:
+                video = Video.objects.create(
+                    title=request.data.get("title"),
+                    description=request.data.get("description"),
+                    video=video_file,
+                    status=request.data.get("status"),
+                    creator=creator,
+                )
+                serializer = VideoSerializer(video)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(
+                    {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+                )
+        else:
+            return Response(
+                {"error": "No video file provided"}, status=status.HTTP_400_BAD_REQUEST
             )
-            serializer = VideoSerializer(video)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(
-            {"error": "No video file provided"}, status=status.HTTP_400_BAD_REQUEST
-        )
-    elif request.method == "GET":
-        videos = Video.objects.all()
-        serializer = VideoSerializer(videos, many=True)
-        return Response(serializer.data)
 
 
 @api_view(["GET", "PUT", "DELETE"])

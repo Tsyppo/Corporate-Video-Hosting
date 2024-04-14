@@ -3,7 +3,7 @@ export const lightTheme = {
     text: '#000',
     headerBackground: '#22888f',
     headerText: '#fff',
-    buttonBackground: '#22888f',
+    buttonBackground: '#196369',
     buttonColor: '#fff',
     border: '1px solid #333',
 }
@@ -13,7 +13,7 @@ export const darkTheme = {
     text: '#f2f2f2',
     headerBackground: '#196369',
     headerText: '#fff',
-    buttonBackground: '#196369',
+    buttonBackground: '#155054',
     buttonColor: '#fff',
     border: '1px solid #000',
 }

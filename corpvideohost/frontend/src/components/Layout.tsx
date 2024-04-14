@@ -2,6 +2,9 @@ import React, { ReactNode, useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import styled, { createGlobalStyle, ThemeProvider } from 'styled-components'
 import SiteIcon from '../assets/images/Panda.svg'
+import HomeIcon from '../assets/images/home.svg'
+import GroupIcon from '../assets/images/group.svg'
+import FavoriteIcon from '../assets/images/favorite.svg'
 import BackgroundPng from '../assets/images/background.png'
 import { useSidebarToggle } from '../hooks/useWindowWidth'
 import { useActions } from '../hooks/useAction'
@@ -14,7 +17,7 @@ import { MdMenu } from 'react-icons/md'
 const GlobalStyle = createGlobalStyle`
   body {
     margin: 0;
-    font-family: cursive, sans-serif;
+    font-family: Sans-serif, sans-serif;
     background-color: ${(props) => props.theme.body};
   }
 
@@ -60,6 +63,12 @@ const IconPanda = styled(LazyLoadImage)`
     width: 50px;
     margin-right: 10px;
 `
+
+const Icon = styled(LazyLoadImage)`
+    width: 50px;
+    margin-right: 10px;
+`
+
 const Title = styled.h1`
     margin: 0;
     @media screen and (max-width: 1920px) {
@@ -90,15 +99,24 @@ const Navigation = styled.nav`
 
 const NavLink = styled(Link)`
     text-decoration: none;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
     color: ${(props) => props.theme.headerText};
-    font-weight: bold;
     padding: 10px;
-    border-radius: 5px;
+
     transition: background-color 0.3s ease;
-    font-size: 20px;
+
     &:hover {
-        background-color: #555;
+        background-color: ${(props) => props.theme.buttonBackground};
     }
+`
+
+const Label = styled.p`
+    margin-top: 0;
+    margin-left: -8px;
+    font-size: 16px;
 `
 
 const Content = styled.main`
@@ -155,23 +173,30 @@ const MenuButton = styled.button`
 `
 
 const ThemeButton = styled.button`
-    background-color: ${(props) => props.theme.buttonBackground};
+    background-color: ${(props) => props.theme.headerBackground};
     color: ${(props) => props.theme.buttonColor};
     transition: background-color 0.3s ease;
     border: none;
     cursor: pointer;
+    &:hover {
+        background-color: ${(props) => props.theme.buttonBackground};
+    }
     @media screen and (max-width: 610px) {
         margin-top: 10px;
         margin-right: 20px;
+        background-color: ${(props) => props.theme.buttonBackground};
     }
 `
 
 const LanguageButton = styled.button`
-    background-color: ${(props) => props.theme.buttonBackground};
+    background-color: ${(props) => props.theme.headerBackground};
     color: ${(props) => props.theme.buttonColor};
     transition: background-color 0.3s ease;
     border: none;
     cursor: pointer;
+    &:hover {
+        background-color: ${(props) => props.theme.buttonBackground};
+    }
     @media screen and (max-width: 610px) {
         margin-top: 10px;
         margin-right: 20px;
@@ -179,13 +204,16 @@ const LanguageButton = styled.button`
 `
 
 const LogoutButton = styled.button`
-    background-color: ${(props) => props.theme.buttonBackground};
+    background-color: ${(props) => props.theme.headerBackground};
     color: ${(props) => props.theme.buttonColor};
     transition: background-color 0.3s ease;
     border: none;
     cursor: pointer;
     margin-left: 10px;
     margin-right: 30px;
+    &:hover {
+        background-color: ${(props) => props.theme.buttonBackground};
+    }
     @media screen and (max-width: 610px) {
         margin-top: 10px;
     }
@@ -201,6 +229,7 @@ const Layout: React.FC<LayoutProps> = React.memo(({ children }) => {
     const [searchTerm, setSearchTermLocal] = useState('')
     const [showSidebar, toggleSidebar] = useSidebarToggle()
 
+    const { logoutUser } = useActions()
     const handleSearchChange = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>) => {
             const { value } = event.target
@@ -224,15 +253,23 @@ const Layout: React.FC<LayoutProps> = React.memo(({ children }) => {
         () => (language === 'en' ? englishLocale : russianLocale),
         [language],
     )
-    const { logoutUser } = useActions() // Получаем action creator для логаута
 
     const handleLogout = () => {
-        // Вызываем action creator для логаута при нажатии на кнопку
         logoutUser()
     }
 
+    const user = localStorage.getItem('user')
+    let userObjectFromStorage: any | null = null
+
+    if (user !== null) {
+        userObjectFromStorage = JSON.parse(user)
+        console.log(userObjectFromStorage)
+    } else {
+        console.log('Объект пользователя отсутствует в localStorage')
+    }
+
     return (
-        <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
+        <ThemeProvider theme={theme === 'dark' ? lightTheme : darkTheme}>
             <>
                 <GlobalStyle />
                 <Header>
@@ -252,20 +289,42 @@ const Layout: React.FC<LayoutProps> = React.memo(({ children }) => {
                         <MdMenu />
                     </MenuButton>
                     <ThemeButton onClick={toggleTheme}>
-                        {theme === 'light' ? 'Dark' : 'Light'} Theme
+                        {theme === 'light' ? 'Light' : 'Dark'} Theme
                     </ThemeButton>
                     <LanguageButton onClick={toggleLanguage}>
                         {language === 'en' ? 'Русский' : 'English'}
                     </LanguageButton>
-                    <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+                    <LogoutButton onClick={handleLogout}>
+                        Logout ({userObjectFromStorage.username})
+                    </LogoutButton>
                 </Header>
                 <Sidebar style={{ display: showSidebar ? 'block' : 'none' }}>
                     <Navigation>
-                        <NavLink to="/photos">{locale.mainNavHome}</NavLink>
-                        <NavLink to="/favorites">
-                            {locale.mainNavFavorites}
+                        <NavLink to="/main">
+                            <Icon
+                                src={HomeIcon}
+                                alt="Panda Icon"
+                                effect="blur"
+                            ></Icon>
+                            <Label>{locale.mainNavHome}</Label>
                         </NavLink>
-                        <NavLink to="/saved">{locale.mainNavSaved}</NavLink>
+                        <NavLink to="/favorites">
+                            <Icon
+                                src={FavoriteIcon}
+                                alt="Panda Icon"
+                                effect="blur"
+                            ></Icon>
+                            <Label>{locale.mainNavFavorites}</Label>
+                        </NavLink>
+                        <NavLink to="/saved">
+                            {' '}
+                            <Icon
+                                src={GroupIcon}
+                                alt="Panda Icon"
+                                effect="blur"
+                            ></Icon>
+                            <Label>{locale.mainNavGroup}</Label>
+                        </NavLink>
                     </Navigation>
                 </Sidebar>
                 <Content>{children}</Content>

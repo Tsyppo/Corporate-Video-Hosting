@@ -27,7 +27,9 @@ class Video(models.Model):
     status = models.CharField(
         max_length=20, choices=VideoStatus.choices, default=VideoStatus.UNLISTED
     )
-    favorited_by_user = models.BooleanField(default=False)
+    creator = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="created_videos"
+    )
     users = models.ManyToManyField(User, through="ViewHistory")
 
     def __str__(self):

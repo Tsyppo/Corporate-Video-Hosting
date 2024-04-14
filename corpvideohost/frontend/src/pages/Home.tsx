@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react'
+import React, { Suspense, useEffect } from 'react'
 import Layout from '../components/Layout'
 
 import { useActions } from '../hooks/useAction'
@@ -8,6 +8,7 @@ import { useTypedSelector } from '../hooks/useTypedSelector'
 import { englishLocale, russianLocale } from '../theme/locales'
 import VideoPlayer from '../components/VideoPlayer'
 import TokenChecker from '../components/TokenChecker'
+import { useSelector } from 'react-redux'
 
 const Title = styled.h1`
     color: ${(props) => props.theme.text};
@@ -25,13 +26,25 @@ const Button = styled.button`
 const Home: React.FC = () => {
     const { language } = useTypedSelector((state) => state.settings)
     const locale = language === 'en' ? englishLocale : russianLocale
+    const userString = localStorage.getItem('user')
     const { user } = useTypedSelector((state) => state.user)
+    if (user !== null) {
+        console.log(user.id == 1)
+    } else {
+        console.log('нет в сторе')
+    }
+
+    if (userString !== null) {
+        const userObjectFromStorage = JSON.parse(userString)
+        console.log(userObjectFromStorage)
+    } else {
+        console.log('Объект пользователя отсутствует в localStorage')
+    }
 
     return (
         <Layout>
-            <TokenChecker></TokenChecker>
+            <TokenChecker targetRoute="/main"></TokenChecker>
             <Title>{locale.homeTitle}</Title>
-
             <VideoPlayer></VideoPlayer>
         </Layout>
     )

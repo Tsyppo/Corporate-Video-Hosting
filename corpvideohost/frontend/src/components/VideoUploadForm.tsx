@@ -1,5 +1,9 @@
 import React, { useState } from 'react'
 import { useActions } from '../hooks/useAction'
+import { useTypedSelector } from '../hooks/useTypedSelector'
+import TokenChecker from './TokenChecker'
+import { useSelector } from 'react-redux'
+import { RootState } from '../store/reducers'
 
 const VideoUploadForm: React.FC = () => {
     const [title, setTitle] = useState('')
@@ -7,7 +11,15 @@ const VideoUploadForm: React.FC = () => {
     const [status, setStatus] = useState('unlisted')
     const [video, setVideo] = useState<File | null>(null)
     const { uploadVideo } = useActions()
+    const user = localStorage.getItem('user')
+    let userObjectFromStorage: any | null = null
 
+    if (user !== null) {
+        userObjectFromStorage = JSON.parse(user)
+        console.log(userObjectFromStorage)
+    } else {
+        console.log('Объект пользователя отсутствует в localStorage')
+    }
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setTitle(e.target.value)
     }
@@ -41,12 +53,16 @@ const VideoUploadForm: React.FC = () => {
         formData.append('description', description)
         formData.append('status', status)
         formData.append('video', video)
+        if (user) {
+            formData.append('creator', userObjectFromStorage.id)
+        }
 
         uploadVideo(formData)
     }
 
     return (
         <form onSubmit={handleSubmit}>
+            <TokenChecker targetRoute="/addvideo"></TokenChecker>
             <div>
                 <label htmlFor="title">Title:</label>
                 <input
@@ -91,3 +107,6 @@ const VideoUploadForm: React.FC = () => {
 }
 
 export default VideoUploadForm
+function getState() {
+    throw new Error('Function not implemented.')
+}

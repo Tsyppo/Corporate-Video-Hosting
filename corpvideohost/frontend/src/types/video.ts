@@ -5,6 +5,7 @@ export interface Video {
     upload_date: string
     video: string
     access_status: string
+    creator: number
     favorited_by_user: boolean
 }
 
