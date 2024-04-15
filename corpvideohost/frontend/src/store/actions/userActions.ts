@@ -2,8 +2,6 @@ import axios from 'axios'
 import { Dispatch } from 'redux'
 import { UserActionTypes, UserAction, User } from '../../types/user'
 import { RootState } from '../reducers'
-import { useTypedSelector } from '../../hooks/useTypedSelector'
-import { createAsyncThunk } from '@reduxjs/toolkit'
 
 export const loginUser = (username: string, password: string) => {
     return async (

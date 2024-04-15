@@ -1,5 +1,5 @@
 import React, { ReactNode, useCallback, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import styled, { createGlobalStyle, ThemeProvider } from 'styled-components'
 import SiteIcon from '../assets/images/Panda.svg'
 import HomeIcon from '../assets/images/home.svg'
@@ -31,7 +31,7 @@ const GlobalStyle = createGlobalStyle`
     background-image: url(${BackgroundPng});
     background-size: cover;
     background-repeat: no-repeat;
-    background-position: 180px 90px;
+    background-position: 120px 90px;
     z-index: -1;
     opacity: 0.1;
     @media screen and (max-width: 610px) {
@@ -77,7 +77,7 @@ const Title = styled.h1`
 `
 
 const Sidebar = styled.nav`
-    width: 180px;
+    width: 120px;
     background-color: ${(props) => props.theme.headerBackground};
     transition: background-color 0.3s ease;
     position: fixed;
@@ -94,7 +94,8 @@ const Sidebar = styled.nav`
 const Navigation = styled.nav`
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    padding: 10px;
+    padding-left: 12px;
 `
 
 const NavLink = styled(Link)`
@@ -105,8 +106,8 @@ const NavLink = styled(Link)`
     flex-direction: column;
     color: ${(props) => props.theme.headerText};
     padding: 10px;
-
     transition: background-color 0.3s ease;
+    width: 80px;
 
     &:hover {
         background-color: ${(props) => props.theme.buttonBackground};
@@ -118,10 +119,13 @@ const Label = styled.p`
     margin-left: -8px;
     font-size: 16px;
 `
+const LabelUser = styled.p`
+    font-size: 16px;
+`
 
 const Content = styled.main`
     margin-top: 60px;
-    margin-left: 250px;
+    margin-left: 200px;
     padding: 20px;
     @media screen and (max-width: 610px) {
         margin-left: 0px;
@@ -203,7 +207,7 @@ const LanguageButton = styled.button`
     }
 `
 
-const LogoutButton = styled.button`
+const DropdownButton = styled.button`
     background-color: ${(props) => props.theme.headerBackground};
     color: ${(props) => props.theme.buttonColor};
     transition: background-color 0.3s ease;
@@ -218,6 +222,29 @@ const LogoutButton = styled.button`
         margin-top: 10px;
     }
 `
+
+const DropdownMenu = styled.ul<{ isOpen: boolean }>`
+    margin-right: 40px;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 10px;
+    padding: 0;
+    list-style: none;
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #fff;
+    border-radius: 5px;
+    visibility: ${({ isOpen }) => (isOpen ? 'visible' : 'hidden')};
+`
+const DropdownItem = styled.li`
+    padding: 10px;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #444;
+    }
+`
 interface LayoutProps {
     children: ReactNode
 }
@@ -225,7 +252,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = React.memo(({ children }) => {
     const { setSearchTerm, changeTheme, changeLanguage } = useActions()
     const { theme, language } = useTypedSelector((state) => state.settings)
-
+    const navigate = useNavigate()
     const [searchTerm, setSearchTermLocal] = useState('')
     const [showSidebar, toggleSidebar] = useSidebarToggle()
 
@@ -260,12 +287,25 @@ const Layout: React.FC<LayoutProps> = React.memo(({ children }) => {
 
     const user = localStorage.getItem('user')
     let userObjectFromStorage: any | null = null
-
+    let username: any | null = null
+    let role: any | null = null
     if (user !== null) {
         userObjectFromStorage = JSON.parse(user)
         console.log(userObjectFromStorage)
+        username = userObjectFromStorage.username
+        role = userObjectFromStorage.role
     } else {
         console.log('Объект пользователя отсутствует в localStorage')
+    }
+
+    const [isOpen, setIsOpen] = useState(false)
+
+    const handleButtonProfileClick = () => {
+        navigate('/profile')
+    }
+
+    const handleButtonVideosClick = () => {
+        navigate('/videos')
     }
 
     return (
@@ -294,9 +334,22 @@ const Layout: React.FC<LayoutProps> = React.memo(({ children }) => {
                     <LanguageButton onClick={toggleLanguage}>
                         {language === 'en' ? 'Русский' : 'English'}
                     </LanguageButton>
-                    <LogoutButton onClick={handleLogout}>
-                        Logout ({userObjectFromStorage.username})
-                    </LogoutButton>
+                    <DropdownMenu isOpen={isOpen}>
+                        <DropdownItem onClick={handleButtonProfileClick}>
+                            Мой профиль
+                        </DropdownItem>
+                        {role === 'admin' || role === 'manager' ? (
+                            <DropdownItem onClick={handleButtonVideosClick}>
+                                Мои видео
+                            </DropdownItem>
+                        ) : null}
+                        <DropdownItem onClick={handleLogout}>
+                            Logout
+                        </DropdownItem>
+                    </DropdownMenu>
+                    <DropdownButton onClick={() => setIsOpen(!isOpen)}>
+                        <LabelUser>{username}</LabelUser>
+                    </DropdownButton>
                 </Header>
                 <Sidebar style={{ display: showSidebar ? 'block' : 'none' }}>
                     <Navigation>
@@ -316,7 +369,7 @@ const Layout: React.FC<LayoutProps> = React.memo(({ children }) => {
                             ></Icon>
                             <Label>{locale.mainNavFavorites}</Label>
                         </NavLink>
-                        <NavLink to="/saved">
+                        <NavLink to="/groups">
                             {' '}
                             <Icon
                                 src={GroupIcon}
