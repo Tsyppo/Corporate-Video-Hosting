@@ -1,9 +1,11 @@
 import React from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useTypedSelector } from '../hooks/useTypedSelector'
 import { Video as VideoType } from '../types/video'
 import Layout from '../components/Layout'
 import styled from 'styled-components'
+import TokenChecker from '../components/TokenChecker'
+import useAutoLogout from '../hooks/useAutoLogout'
 
 const Container = styled.div`
     margin-left: 150px;
@@ -81,6 +83,14 @@ const ContainerVideo = styled.div`
 `
 
 const Video: React.FC = () => {
+    const navigate = useNavigate()
+
+    useAutoLogout(30 * 60 * 1000, () => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        navigate('/login')
+    })
+
     const { id } = useParams<{ id?: string }>()
     const videos = useTypedSelector((state) => state.video.videos)
     console.log(videos)
@@ -103,6 +113,7 @@ const Video: React.FC = () => {
 
     return (
         <Layout>
+            <TokenChecker targetRoute={`/video/${video.id}`}></TokenChecker>
             <Container>
                 <VideoPlace controls>
                     <source src={video.video} type="video/mp4" />

@@ -4,6 +4,8 @@ import styled from 'styled-components'
 import { useTypedSelector } from '../hooks/useTypedSelector'
 import TokenChecker from '../components/TokenChecker'
 import AvatarIcon from '../assets/images/avatar.png'
+import { useNavigate } from 'react-router-dom'
+import useAutoLogout from '../hooks/useAutoLogout'
 
 const Container = styled.div`
     display: flex;
@@ -36,6 +38,14 @@ const Button = styled.button`
 `
 
 const Profile: React.FC = () => {
+    const navigate = useNavigate()
+
+    useAutoLogout(30 * 60 * 1000, () => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        navigate('/login')
+    })
+
     const userString = localStorage.getItem('user')
     const { user } = useTypedSelector((state) => state.user)
 

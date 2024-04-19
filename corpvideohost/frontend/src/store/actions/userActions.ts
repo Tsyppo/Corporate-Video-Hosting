@@ -2,6 +2,7 @@ import axios from 'axios'
 import { Dispatch } from 'redux'
 import { UserActionTypes, UserAction, User } from '../../types/user'
 import { RootState } from '../reducers'
+import { useNavigate } from 'react-router-dom'
 
 export const loginUser = (username: string, password: string) => {
     return async (
@@ -26,6 +27,14 @@ export const loginUser = (username: string, password: string) => {
                     payload: response.data.user,
                 })
                 localStorage.setItem('user', JSON.stringify(response.data.user))
+                const tokenExpirationTime = 10 * 1000 // 30 минут
+                setTimeout(() => {
+                    localStorage.removeItem('token')
+                    localStorage.removeItem('user')
+                    // Можно также добавить дополнительные действия, например, перенаправление на страницу выхода
+                    dispatch({ type: UserActionTypes.LOGOUT_USER })
+                    window.location.href = '/logout' // Пример URL для страницы выхода
+                }, tokenExpirationTime)
                 window.location.href = '/main'
             } else {
                 dispatch({
@@ -51,6 +60,7 @@ export const loginUserSuccess = (token: string) => ({
 export const logoutUser = () => {
     return async (dispatch: Dispatch) => {
         localStorage.removeItem('token')
+        localStorage.removeItem('user')
         window.location.assign('http://localhost:3000/login')
         dispatch({ type: UserActionTypes.LOGOUT_USER })
     }

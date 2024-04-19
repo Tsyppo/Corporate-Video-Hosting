@@ -50,7 +50,12 @@ export interface UserFailureAction {
     payload: string
 }
 
+export interface LogoutUserAction {
+    type: UserActionTypes.LOGOUT_USER
+}
+
 export type UserAction =
     | UserRequestAction
     | UserSuccessAction
     | UserFailureAction
+    | LogoutUserAction

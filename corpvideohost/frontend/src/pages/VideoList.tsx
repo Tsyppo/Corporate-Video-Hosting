@@ -6,6 +6,8 @@ import Layout from '../components/Layout'
 import ReactDOM from 'react-dom'
 import TokenChecker from '../components/TokenChecker'
 import VideoPlayer from '../components/VideoItem'
+import { useNavigate } from 'react-router-dom'
+import useAutoLogout from '../hooks/useAutoLogout'
 
 const Button = styled.button`
     height: 40px;
@@ -158,6 +160,14 @@ const UploadButton = styled.label`
 `
 
 const VideoList: React.FC = () => {
+    const navigate = useNavigate()
+
+    useAutoLogout(30 * 60 * 1000, () => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        navigate('/login')
+    })
+
     const { fetchVideoList, deleteVideo } = useActions()
     const videos = useTypedSelector((state) => state.video.videos)
     const user = localStorage.getItem('user')

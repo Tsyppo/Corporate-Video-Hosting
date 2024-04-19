@@ -4,7 +4,8 @@ import styled from 'styled-components'
 import { useTypedSelector } from '../hooks/useTypedSelector'
 import TokenChecker from '../components/TokenChecker'
 import VideoItem from '../components/VideoItem'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
+import useAutoLogout from '../hooks/useAutoLogout'
 
 const Title = styled.h1`
     color: ${(props) => props.theme.text};
@@ -22,6 +23,14 @@ const Button = styled.button`
 `
 
 const PlaylistDetail: React.FC = () => {
+    const navigate = useNavigate()
+
+    useAutoLogout(30 * 60 * 1000, () => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        navigate('/login')
+    })
+
     const userString = localStorage.getItem('user')
     const { user } = useTypedSelector((state) => state.user)
     if (user !== null) {
@@ -39,8 +48,8 @@ const PlaylistDetail: React.FC = () => {
 
     return (
         <Layout>
-            <Title>Плейлист 1</Title>
             <TokenChecker targetRoute="/playlist"></TokenChecker>
+            <Title>Плейлист 1</Title>
             <VideoItem></VideoItem>
         </Layout>
     )

@@ -4,7 +4,8 @@ import styled from 'styled-components'
 import AvatarIcon from '../assets/images/avatar.png'
 import TokenChecker from '../components/TokenChecker'
 import ReactDOM from 'react-dom'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import useAutoLogout from '../hooks/useAutoLogout'
 
 const Container = styled.div`
     margin-left: 300px;
@@ -200,6 +201,14 @@ const StyledLink = styled(Link)`
 `
 
 const GroupList: React.FC = () => {
+    const navigate = useNavigate()
+
+    useAutoLogout(30 * 60 * 1000, () => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        navigate('/login')
+    })
+
     const userString = localStorage.getItem('user')
 
     if (userString !== null) {

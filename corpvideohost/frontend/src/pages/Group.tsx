@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import Layout from '../components/Layout'
 import styled from 'styled-components'
 import ReactDOM from 'react-dom'
 import VideoItem from '../components/VideoItem'
 import Playlist from '../components/Playlists'
+import TokenChecker from '../components/TokenChecker'
+import useAutoLogout from '../hooks/useAutoLogout'
 
 const Button = styled.button`
     height: 40px;
@@ -156,6 +158,14 @@ const Option = styled.option`
     cursor: pointer;
 `
 const Group: React.FC = () => {
+    const navigate = useNavigate()
+
+    useAutoLogout(30 * 60 * 1000, () => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        navigate('/login')
+    })
+
     const userString = localStorage.getItem('user')
 
     if (userString !== null) {
@@ -215,6 +225,7 @@ const Group: React.FC = () => {
 
     return (
         <Layout>
+            <TokenChecker targetRoute={`/group/${group.id}`}></TokenChecker>
             <MainTitle>{group.name}</MainTitle>
             <>
                 {role === 'manager' || role === 'admin' ? (

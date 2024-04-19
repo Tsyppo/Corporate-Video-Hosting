@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Layout from '../components/Layout'
 import styled from 'styled-components'
 import { useTypedSelector } from '../hooks/useTypedSelector'
 import TokenChecker from '../components/TokenChecker'
 import { useNavigate } from 'react-router-dom'
+import useAutoLogout from '../hooks/useAutoLogout'
 
 const Title = styled.h1`
     color: ${(props) => props.theme.text};
@@ -23,9 +24,16 @@ const Button = styled.button`
 `
 
 const Home: React.FC = () => {
+    const navigate = useNavigate()
+
+    useAutoLogout(30 * 60 * 1000, () => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        navigate('/login')
+    })
+
     const userString = localStorage.getItem('user')
     const { user } = useTypedSelector((state) => state.user)
-    const navigate = useNavigate()
     if (user !== null) {
         console.log(user.id == 1)
     } else {

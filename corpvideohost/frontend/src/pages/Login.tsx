@@ -51,7 +51,9 @@ const Form = styled.form`
     backdrop-filter: blur(5px);
 `
 
-const Label = styled.h1``
+const Label = styled.h1`
+    color: #fff;
+`
 
 const FormGroup = styled.div`
     margin-bottom: 20px;
@@ -90,8 +92,7 @@ const Button = styled.button`
 `
 
 const Login: React.FC = () => {
-    const { theme, language } = useTypedSelector((state) => state.settings)
-    const { changeTheme, changeLanguage } = useActions()
+    const { theme } = useTypedSelector((state) => state.settings)
 
     const { loginUser } = useActions()
 

@@ -4,6 +4,8 @@ import styled from 'styled-components'
 import { useTypedSelector } from '../hooks/useTypedSelector'
 import TokenChecker from '../components/TokenChecker'
 import VideoItem from '../components/VideoItem'
+import { useNavigate } from 'react-router-dom'
+import useAutoLogout from '../hooks/useAutoLogout'
 
 const Title = styled.h1`
     color: ${(props) => props.theme.text};
@@ -28,6 +30,14 @@ const Favorites: React.FC = () => {
     } else {
         console.log('нет в сторе')
     }
+
+    const navigate = useNavigate()
+
+    useAutoLogout(30 * 60 * 1000, () => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        navigate('/login')
+    })
 
     if (userString !== null) {
         const userObjectFromStorage = JSON.parse(userString)

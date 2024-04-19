@@ -1,12 +1,10 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useTypedSelector } from '../hooks/useTypedSelector'
 import { loginUserSuccess, logoutUser } from '../store/actions/userActions'
 import axios from 'axios'
 
 const TokenChecker: React.FC<{ targetRoute: string }> = ({ targetRoute }) => {
     const navigate = useNavigate()
-    const { user } = useTypedSelector((state) => state.user)
 
     useEffect(() => {
         const token = localStorage.getItem('token')
