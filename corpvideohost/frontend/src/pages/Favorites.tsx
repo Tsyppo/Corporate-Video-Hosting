@@ -23,6 +23,7 @@ const Button = styled.button`
 `
 
 const Favorites: React.FC = () => {
+    useAutoLogout()
     const userString = localStorage.getItem('user')
     const { user } = useTypedSelector((state) => state.user)
     if (user !== null) {
@@ -30,14 +31,6 @@ const Favorites: React.FC = () => {
     } else {
         console.log('нет в сторе')
     }
-
-    const navigate = useNavigate()
-
-    useAutoLogout(30 * 60 * 1000, () => {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        navigate('/login')
-    })
 
     if (userString !== null) {
         const userObjectFromStorage = JSON.parse(userString)

@@ -1,12 +1,16 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Layout from '../components/Layout'
 import styled from 'styled-components'
 import ReactDOM from 'react-dom'
 import VideoItem from '../components/VideoItem'
-import Playlist from '../components/Playlists'
+import PlaylistItem from '../components/PlaylistItem'
 import TokenChecker from '../components/TokenChecker'
+import { useTypedSelector } from '../hooks/useTypedSelector'
 import useAutoLogout from '../hooks/useAutoLogout'
+import PanelCreatePlaylist from '../components/PanelCreatePlaylist'
+import { fetchGroupList } from '../store/actions/groupActions'
+import { useDispatch } from 'react-redux'
 
 const Button = styled.button`
     height: 40px;
@@ -158,19 +162,12 @@ const Option = styled.option`
     cursor: pointer;
 `
 const Group: React.FC = () => {
-    const navigate = useNavigate()
-
-    useAutoLogout(30 * 60 * 1000, () => {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        navigate('/login')
-    })
+    useAutoLogout()
 
     const userString = localStorage.getItem('user')
 
     if (userString !== null) {
         const userObjectFromStorage = JSON.parse(userString)
-        console.log(userObjectFromStorage)
     } else {
         console.log('Объект пользователя отсутствует в localStorage')
     }
@@ -194,23 +191,28 @@ const Group: React.FC = () => {
     }
     const { id } = useParams<{ id?: string }>()
 
-    const groups = [
-        { id: 1, name: 'Группа 1', participants: 10, avatar: 'avatar1.png' },
-        { id: 2, name: 'Группа 2', participants: 15, avatar: 'avatar2.png' },
-        { id: 3, name: 'Группа 3', participants: 20, avatar: 'avatar3.png' },
-        { id: 4, name: 'Группа 4', participants: 20, avatar: 'avatar3.png' },
-        { id: 5, name: 'Группа 5', participants: 35, avatar: 'avatar3.png' },
-        { id: 6, name: 'Группа 6', participants: 20, avatar: 'avatar3.png' },
-        { id: 7, name: 'Группа 7', participants: 30, avatar: 'avatar3.png' },
-        { id: 8, name: 'Группа 8', participants: 20, avatar: 'avatar3.png' },
-        { id: 9, name: 'Группа 9', participants: 20, avatar: 'avatar3.png' },
-        { id: 10, name: 'Группа 10', participants: 40, avatar: 'avatar3.png' },
-        { id: 11, name: 'Группа 11', participants: 20, avatar: 'avatar3.png' },
-        { id: 12, name: 'Группа 12', participants: 20, avatar: 'avatar3.png' },
-    ]
+    const dispatch = useDispatch()
+    const { groups } = useTypedSelector((state) => state.group)
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                await fetchGroupList()(dispatch)
+            } catch (error) {
+                console.error('Error fetching group list:', error)
+            }
+        }
+
+        fetchData()
+    }, [dispatch])
 
     if (!groups) {
-        return <div>Loading...</div>
+        return (
+            <Layout>
+                {' '}
+                <div>Loading...</div>
+            </Layout>
+        )
     }
 
     if (!id) {
@@ -226,8 +228,13 @@ const Group: React.FC = () => {
     return (
         <Layout>
             <TokenChecker targetRoute={`/group/${group.id}`}></TokenChecker>
-            <MainTitle>{group.name}</MainTitle>
+            <MainTitle>{group.title}</MainTitle>
             <>
+                {role === 'manager' || role === 'admin' ? (
+                    <VipButton onClick={togglePanelPlaylist}>
+                        Создать плейлист
+                    </VipButton>
+                ) : null}
                 {role === 'manager' || role === 'admin' ? (
                     <VipButton>Добавить видео</VipButton>
                 ) : null}
@@ -237,73 +244,14 @@ const Group: React.FC = () => {
                 {role === 'manager' || role === 'admin' ? (
                     <VipButton>Просмотр заявок</VipButton>
                 ) : null}
-                {role === 'manager' || role === 'admin' ? (
-                    <VipButton onClick={togglePanelPlaylist}>
-                        Создать плейлист
-                    </VipButton>
-                ) : null}
-                {isPanelOpen &&
-                    ReactDOM.createPortal(
-                        <>
-                            <Overlay>
-                                <OverlayContent onClick={togglePanelPlaylist} />{' '}
-                            </Overlay>
-                            <PanelContainer>
-                                <MainTitle>Создание плейлиста</MainTitle>
-                                <ContainerPanel>
-                                    <FormContainer>
-                                        <FormGroup>
-                                            <Input
-                                                type="text"
-                                                placeholder="Title"
-                                                id="title"
-                                            />
-                                        </FormGroup>
-                                        <FormGroup>
-                                            <Texrarea
-                                                placeholder="Description"
-                                                id="description"
-                                            />
-                                        </FormGroup>
-                                        <FormGroup>
-                                            <Label htmlFor="status">
-                                                Статус:
-                                            </Label>
-                                            <StyledSelect
-                                                id="status"
-                                                value={status}
-                                            >
-                                                <Option value="public">
-                                                    Public
-                                                </Option>
-                                                <Option value="private">
-                                                    Private
-                                                </Option>
-                                                <Option value="unlisted">
-                                                    Unlisted
-                                                </Option>
-                                            </StyledSelect>
-                                        </FormGroup>
-                                        <Button type="submit">Создать</Button>
-                                    </FormContainer>
-                                </ContainerPanel>
-                                <ButtonClosePanel onClick={togglePanelPlaylist}>
-                                    Закрыть панель
-                                </ButtonClosePanel>
-                            </PanelContainer>
-                        </>,
-                        document.body,
-                    )}
+
+                <PanelCreatePlaylist
+                    isPanelOpen={isPanelOpen}
+                    togglePanelPlaylist={togglePanelPlaylist}
+                    groupId={group.id}
+                />
             </>
-            <Playlist
-                playlists={[
-                    { name: 'Плейлист 1', description: 'Описание плейлиста 1' },
-                    { name: 'Плейлист 2', description: 'Описание плейлиста 2' },
-                    { name: 'Плейлист 3', description: 'Описание плейлиста 3' },
-                ]}
-            />
-            <SecondTitle>Видео:</SecondTitle>
-            <VideoItem></VideoItem>
+            <PlaylistItem groupId={group.id} />
         </Layout>
     )
 }

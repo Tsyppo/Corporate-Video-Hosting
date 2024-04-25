@@ -1,6 +1,9 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
+
+from user.models import User
+from video.models import Video
 from .models import Group, Playlist, SearchHistory, UserProfile
 from .serializers import (
     GroupSerializer,
@@ -19,9 +22,26 @@ def group_list(request):
     elif request.method == "POST":
         serializer = GroupSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            user_id = request.data.get("creator")
+            creator = User.objects.filter(id=user_id).first()
+            if creator is not None:
+                group = Group.objects.create(
+                    title=request.data.get("title"),
+                    description=request.data.get("description"),
+                    status=request.data.get("status"),
+                    creator=creator,
+                )
+                serializer = GroupSerializer(group)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(
+                    {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+                )
+        else:
+            return Response(
+                {"error": "Serializer is no valid"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 @api_view(["GET", "PUT", "DELETE"])
@@ -54,11 +74,39 @@ def playlist_list(request):
         serializer = PlaylistSerializer(queryset, many=True)
         return Response(serializer.data)
     elif request.method == "POST":
-        serializer = PlaylistSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        group_id = request.data.get("group")
+        group = Group.objects.filter(id=group_id).first()
+
+        if group:
+            serializer = PlaylistSerializer(data=request.data)
+            if serializer.is_valid():
+                playlist = Playlist.objects.create(
+                    title=request.data.get("title"),
+                    status=request.data.get("status"),
+                    group=group,
+                )
+
+                # Получаем список id видео из FormData
+                video_ids = request.data.getlist("videos")
+                for video_id in video_ids:
+                    try:
+                        video = Video.objects.get(id=int(video_id))
+                        playlist.videos.add(video)
+                    except Video.DoesNotExist:
+                        print(f"Video with id {int(video_id)} does not exist.")
+
+                serializer = PlaylistSerializer(playlist)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(
+                    {"error": "Serializer is not valid"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
+            return Response(
+                {"error": "Group not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
 
 @api_view(["GET", "PUT", "DELETE"])

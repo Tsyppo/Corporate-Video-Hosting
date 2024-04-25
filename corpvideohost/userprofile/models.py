@@ -27,6 +27,7 @@ class Group(models.Model):
         User, on_delete=models.CASCADE, related_name="created_groups"
     )
     videos = models.ManyToManyField(Video, blank=True)
+    playlists = models.ManyToManyField("Playlist", blank=True, related_name="groups")
 
     def __str__(self):
         return self.title

@@ -6,6 +6,8 @@ import TokenChecker from '../components/TokenChecker'
 import VideoItem from '../components/VideoItem'
 import { useNavigate, useParams } from 'react-router-dom'
 import useAutoLogout from '../hooks/useAutoLogout'
+import { Playlist as PlaylistType } from '../types/playlist'
+import { Video } from '../types/video'
 
 const Title = styled.h1`
     color: ${(props) => props.theme.text};
@@ -23,34 +25,41 @@ const Button = styled.button`
 `
 
 const PlaylistDetail: React.FC = () => {
-    const navigate = useNavigate()
+    useAutoLogout()
 
-    useAutoLogout(30 * 60 * 1000, () => {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        navigate('/login')
-    })
+    const { id } = useParams<{ id?: string }>()
+    const playlists = useTypedSelector((state) => state.playlist.playlists)
+    const videos = useTypedSelector((state) => state.video.videos)
 
-    const userString = localStorage.getItem('user')
-    const { user } = useTypedSelector((state) => state.user)
-    if (user !== null) {
-        console.log(user.id == 1)
-    } else {
-        console.log('нет в сторе')
+    if (!playlists) {
+        return <div>Playlists not found</div>
     }
 
-    if (userString !== null) {
-        const userObjectFromStorage = JSON.parse(userString)
-        console.log(userObjectFromStorage)
-    } else {
-        console.log('Объект пользователя отсутствует в localStorage')
+    if (!id) {
+        return <div>Video ID is not provided</div>
     }
+
+    if (!videos) {
+        return <div>Videos not found</div>
+    }
+
+    const playlist: PlaylistType | undefined = playlists.find(
+        (playlist) => playlist.id === parseInt(id, 10),
+    )
+
+    if (!playlist) {
+        return <div>Playlist not found</div>
+    }
+    const playlistId = playlist.id
 
     return (
         <Layout>
-            <TokenChecker targetRoute="/playlist"></TokenChecker>
-            <Title>Плейлист 1</Title>
-            <VideoItem></VideoItem>
+            <TokenChecker
+                targetRoute={`/playlist/${playlist.id}`}
+            ></TokenChecker>
+            <Title>{playlist.title}</Title>
+            {/* Передать отфильтрованный список видео в компонент VideoItem */}
+            <VideoItem playlistId={playlistId} />
         </Layout>
     )
 }

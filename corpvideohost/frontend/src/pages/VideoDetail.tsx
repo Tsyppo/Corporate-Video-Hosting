@@ -83,13 +83,7 @@ const ContainerVideo = styled.div`
 `
 
 const Video: React.FC = () => {
-    const navigate = useNavigate()
-
-    useAutoLogout(30 * 60 * 1000, () => {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        navigate('/login')
-    })
+    useAutoLogout()
 
     const { id } = useParams<{ id?: string }>()
     const videos = useTypedSelector((state) => state.video.videos)

@@ -4,6 +4,7 @@ import { useActions } from '../hooks/useAction'
 import { useTypedSelector } from '../hooks/useTypedSelector'
 import styled from 'styled-components'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Playlist } from '../types/playlist'
 
 const VideoContainer = styled.div`
     margin-top: 40px;
@@ -74,30 +75,69 @@ const StyledLink = styled(Link)`
     }
 `
 
-const VideoItem: React.FC = () => {
+interface VideoItemProps {
+    playlistId?: number
+}
+
+const VideoItem: React.FC<VideoItemProps> = (playlistId) => {
     const { fetchVideoList, deleteVideo } = useActions()
     const videos = useTypedSelector((state) => state.video.videos)
+
     const user = localStorage.getItem('user')
     let userObjectFromStorage: any | null = null
-    const navigate = useNavigate()
     const location = useLocation()
 
     if (user !== null) {
         userObjectFromStorage = JSON.parse(user)
-        console.log(userObjectFromStorage)
     } else {
         console.log('Объект пользователя отсутствует в localStorage')
     }
 
-    useEffect(() => {
-        fetchVideoList(userObjectFromStorage.id)
-    }, [])
+    try {
+        useEffect(() => {
+            fetchVideoList(userObjectFromStorage.id)
+        }, [])
+    } catch {
+        console.log('error')
+    }
 
     const handleDelete = (videoId: number) => {
         deleteVideo(videoId)
     }
-    const handleVideoClick = (videoId: number) => {
-        navigate(`/video/${videoId}`) // Переход на страницу с конкретным видео
+
+    if (!videos) {
+        return <div>Videos not found</div>
+    }
+
+    // Убедитесь, что массивы videos и playlist.videos не пустые
+    let playlistVideos: Video[] = []
+    const actualPlaylistId = playlistId.playlistId
+
+    if (actualPlaylistId != null) {
+        const playlists = useTypedSelector((state) => state.playlist.playlists)
+
+        if (!playlists) {
+            return <div>Playlists not found</div>
+        }
+
+        // Находим плейлист по переданному playlistId
+        const playlist: Playlist | undefined = playlists.find(
+            (playlist) => playlist.id === actualPlaylistId,
+        )
+
+        // Если плейлист найден и у него есть видео, фильтруем видео по их id
+        if (playlist) {
+            playlistVideos = videos.filter((video) =>
+                playlist.videos.some(
+                    (playlistVideoId) => playlistVideoId === video.id,
+                ),
+            )
+        } else {
+            // Если плейлист не найден или у него нет видео, отображаем все видео
+            playlistVideos = videos
+        }
+    } else {
+        playlistVideos = videos
     }
 
     // Функция для получения имени пользователя по его идентификатору
@@ -110,8 +150,8 @@ const VideoItem: React.FC = () => {
 
     return (
         <div>
-            {videos &&
-                videos.map((video: Video) => (
+            {playlistVideos &&
+                playlistVideos.map((video: Video) => (
                     <div key={video.id}>
                         <VideoContainer>
                             <VideoPlace>

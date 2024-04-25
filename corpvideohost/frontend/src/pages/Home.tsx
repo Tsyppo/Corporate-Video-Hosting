@@ -5,6 +5,8 @@ import { useTypedSelector } from '../hooks/useTypedSelector'
 import TokenChecker from '../components/TokenChecker'
 import { useNavigate } from 'react-router-dom'
 import useAutoLogout from '../hooks/useAutoLogout'
+import { fetchGroupList } from '../store/actions/groupActions'
+import GroupItem from '../components/GroupItem'
 
 const Title = styled.h1`
     color: ${(props) => props.theme.text};
@@ -25,27 +27,14 @@ const Button = styled.button`
 
 const Home: React.FC = () => {
     const navigate = useNavigate()
+    useAutoLogout()
+    const { groups } = useTypedSelector((state) => state.group)
 
-    useAutoLogout(30 * 60 * 1000, () => {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        navigate('/login')
-    })
+    useEffect(() => {
+        fetchGroupList()
+    }, [])
 
     const userString = localStorage.getItem('user')
-    const { user } = useTypedSelector((state) => state.user)
-    if (user !== null) {
-        console.log(user.id == 1)
-    } else {
-        console.log('нет в сторе')
-    }
-
-    if (userString !== null) {
-        const userObjectFromStorage = JSON.parse(userString)
-        console.log(userObjectFromStorage)
-    } else {
-        console.log('Объект пользователя отсутствует в localStorage')
-    }
 
     const handleButtonClick = () => {
         navigate('/groups')
@@ -54,10 +43,18 @@ const Home: React.FC = () => {
     return (
         <Layout>
             <TokenChecker targetRoute="/main"></TokenChecker>
-            <Title>
-                Здесь будут отображаться группы в которых вы состоите!
-            </Title>
-            <Button onClick={handleButtonClick}>Перейти к списку групп</Button>
+            {groups && groups.length === 0 ? (
+                <div>
+                    <Title>
+                        Здесь будут отображаться группы в которых вы состоите!
+                    </Title>
+                    <Button onClick={handleButtonClick}>
+                        Перейти к списку групп
+                    </Button>
+                </div>
+            ) : (
+                <GroupItem></GroupItem>
+            )}
         </Layout>
     )
 }

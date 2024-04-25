@@ -38,13 +38,7 @@ const Button = styled.button`
 `
 
 const Profile: React.FC = () => {
-    const navigate = useNavigate()
-
-    useAutoLogout(30 * 60 * 1000, () => {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        navigate('/login')
-    })
+    useAutoLogout()
 
     const userString = localStorage.getItem('user')
     const { user } = useTypedSelector((state) => state.user)

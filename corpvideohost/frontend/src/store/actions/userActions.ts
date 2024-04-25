@@ -27,14 +27,6 @@ export const loginUser = (username: string, password: string) => {
                     payload: response.data.user,
                 })
                 localStorage.setItem('user', JSON.stringify(response.data.user))
-                const tokenExpirationTime = 10 * 1000 // 30 минут
-                setTimeout(() => {
-                    localStorage.removeItem('token')
-                    localStorage.removeItem('user')
-                    // Можно также добавить дополнительные действия, например, перенаправление на страницу выхода
-                    dispatch({ type: UserActionTypes.LOGOUT_USER })
-                    window.location.href = '/logout' // Пример URL для страницы выхода
-                }, tokenExpirationTime)
                 window.location.href = '/main'
             } else {
                 dispatch({

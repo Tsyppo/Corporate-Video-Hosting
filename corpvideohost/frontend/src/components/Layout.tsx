@@ -13,6 +13,7 @@ import { lightTheme, darkTheme } from '../theme/theme'
 import { englishLocale, russianLocale } from '../theme/locales'
 import { LazyLoadImage } from 'react-lazy-load-image-component'
 import { MdMenu } from 'react-icons/md'
+import useAutoLogout from '../hooks/useAutoLogout'
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -281,6 +282,8 @@ const Layout: React.FC<LayoutProps> = React.memo(({ children }) => {
         [language],
     )
 
+    useAutoLogout()
+
     const handleLogout = () => {
         logoutUser()
     }
@@ -291,7 +294,6 @@ const Layout: React.FC<LayoutProps> = React.memo(({ children }) => {
     let role: any | null = null
     if (user !== null) {
         userObjectFromStorage = JSON.parse(user)
-        console.log(userObjectFromStorage)
         username = userObjectFromStorage.username
         role = userObjectFromStorage.role
     } else {

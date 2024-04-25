@@ -1,35 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
-const useAutoLogout = (timeout: number, logoutCallback: () => void) => {
-    const [logoutTimer, setLogoutTimer] = useState<NodeJS.Timeout | null>(null)
-
+const useAutoLogout = (timeout: number = 30 * 60 * 1000) => {
     useEffect(() => {
-        const resetTimer = () => {
-            if (logoutTimer) {
-                clearTimeout(logoutTimer)
-            }
-            setLogoutTimer(setTimeout(logoutCallback, timeout))
-        }
-
-        const handleUserActivity = () => {
-            resetTimer()
-        }
-
-        document.addEventListener('keydown', handleUserActivity)
-        document.addEventListener('mousemove', handleUserActivity)
-
-        resetTimer()
+        const logoutTimer = setTimeout(() => {
+            localStorage.removeItem('token')
+            localStorage.removeItem('user')
+        }, timeout)
 
         return () => {
-            if (logoutTimer) {
-                clearTimeout(logoutTimer)
-            }
-            document.removeEventListener('keydown', handleUserActivity)
-            document.removeEventListener('mousemove', handleUserActivity)
+            clearTimeout(logoutTimer)
         }
-    }, [timeout, logoutCallback, logoutTimer])
-
-    return null
+    }, [timeout])
 }
 
 export default useAutoLogout

@@ -2,11 +2,11 @@ import React from 'react'
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import Home from './pages/Home'
 import Login from './pages/Login'
-import Group from './pages/Group'
+import Group from './pages/GroupDetail'
 import Favorites from './pages/Favorites'
 import Profile from './pages/Profile'
 import VideoList from './pages/VideoList'
-import Video from './pages/Video'
+import Video from './pages/VideoDetail'
 import GroupList from './pages/GroupList'
 import PlaylistDetail from './pages/PlaylistDetail'
 
@@ -22,7 +22,7 @@ const App: React.FC = () => {
                 <Route path="/videos" element={<VideoList />} />
                 <Route path="/video/:id" element={<Video />} />
                 <Route path="/group/:id" element={<Group />} />
-                <Route path="/playlist" element={<PlaylistDetail />} />
+                <Route path="/playlist/:id" element={<PlaylistDetail />} />
             </Routes>
         </Router>
     )
