@@ -3,7 +3,7 @@ import Layout from '../components/Layout'
 import styled from 'styled-components'
 import { useTypedSelector } from '../hooks/useTypedSelector'
 import TokenChecker from '../components/TokenChecker'
-import VideoItem from '../components/VideoItem'
+import VideoItem from '../components/VideoItems'
 import { useNavigate } from 'react-router-dom'
 import useAutoLogout from '../hooks/useAutoLogout'
 

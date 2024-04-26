@@ -44,7 +44,7 @@ def group_list(request):
             )
 
 
-@api_view(["GET", "PUT", "DELETE"])
+@api_view(["GET", "PUT", "PATCH", "DELETE"])
 def group_detail(request, pk):
     try:
         group = Group.objects.get(pk=pk)
@@ -57,6 +57,15 @@ def group_detail(request, pk):
 
     elif request.method == "PUT":
         serializer = GroupSerializer(group, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == "PATCH":  # Добавлено обработчик для PATCH запроса
+        serializer = GroupSerializer(
+            group, data=request.data, partial=True
+        )  # Устанавливаем partial=True для частичного обновления
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -109,7 +118,7 @@ def playlist_list(request):
             )
 
 
-@api_view(["GET", "PUT", "DELETE"])
+@api_view(["GET", "PUT", "PATCH", "DELETE"])
 def playlist_detail(request, pk):
     try:
         playlist = Playlist.objects.get(pk=pk)
@@ -122,6 +131,13 @@ def playlist_detail(request, pk):
 
     elif request.method == "PUT":
         serializer = PlaylistSerializer(playlist, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == "PATCH":
+        serializer = PlaylistSerializer(playlist, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

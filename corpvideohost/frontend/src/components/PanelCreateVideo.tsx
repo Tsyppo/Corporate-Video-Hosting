@@ -160,7 +160,7 @@ const PanelCreateVideo: React.FC<{
 }> = ({ isPanelOpen, togglePanel }) => {
     useAutoLogout()
 
-    const { fetchVideoList, deleteVideo } = useActions()
+    const { fetchVideoListUser, deleteVideo } = useActions()
     const videos = useTypedSelector((state) => state.video.videos)
     const user = localStorage.getItem('user')
     let userObjectFromStorage: any | null = null
@@ -173,7 +173,7 @@ const PanelCreateVideo: React.FC<{
     }
 
     useEffect(() => {
-        fetchVideoList(userObjectFromStorage.id)
+        fetchVideoListUser(userObjectFromStorage.id)
     }, [])
 
     const [title, setTitle] = useState('')

@@ -10,7 +10,7 @@ from .serializers import VideoSerializer, ViewHistorySerializer, CommentSerializ
 
 
 @api_view(["GET", "POST"])
-def video_list(request):
+def user_video_list(request):
     if request.method == "GET":
         user_id = request.GET.get("user")
         if user_id is not None:
@@ -46,6 +46,14 @@ def video_list(request):
             return Response(
                 {"error": "No video file provided"}, status=status.HTTP_400_BAD_REQUEST
             )
+
+
+@api_view(["GET"])
+def all_video_list(request):
+    if request.method == "GET":
+        videos = Video.objects.all()
+        serializer = VideoSerializer(videos, many=True)
+        return Response(serializer.data)
 
 
 @api_view(["GET", "PUT", "DELETE"])

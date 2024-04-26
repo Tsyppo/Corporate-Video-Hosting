@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import Layout from '../components/Layout'
 import styled from 'styled-components'
 import ReactDOM from 'react-dom'
-import VideoItem from '../components/VideoItem'
+import VideoItems from '../components/VideoItems'
 import PlaylistItem from '../components/PlaylistItem'
 import TokenChecker from '../components/TokenChecker'
 import { useTypedSelector } from '../hooks/useTypedSelector'
@@ -11,6 +11,7 @@ import useAutoLogout from '../hooks/useAutoLogout'
 import PanelCreatePlaylist from '../components/PanelCreatePlaylist'
 import { fetchGroupList } from '../store/actions/groupActions'
 import { useDispatch } from 'react-redux'
+import PanelAddVideo from '../components/PanelAddVideo'
 
 const Button = styled.button`
     height: 40px;
@@ -31,136 +32,10 @@ const VipButton = styled(Button)`
     margin-right: 30px;
 `
 
-const ButtonPanel = styled.button`
-    height: 40px;
-    font-size: medium;
-    margin-top: 20px;
-    background-color: ${(props) => props.theme.headerBackground};
-    color: ${(props) => props.theme.headerText};
-    transition: background-color 0.3s ease;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-`
-
-const ButtonClosePanel = styled(ButtonPanel)`
-    margin-top: 50px;
-    margin-left: 70%;
-`
-const ContainerPanel = styled.div`
-    display: flex;
-`
-
-const PanelContainer = styled.div`
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 600px;
-    height: 600px;
-    padding: 20px;
-    border-radius: 10px;
-
-    background-color: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(40px);
-    z-index: 10000;
-`
-
-const Overlay = styled.div`
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 9999;
-    pointer-events: none;
-`
-
-const OverlayContent = styled.div`
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: auto;
-`
-
-const FormContainer = styled.form`
-    width: 520px;
-    padding: 20px;
-`
-
 const MainTitle = styled.h1`
     color: ${(props) => props.theme.text};
 `
-const SecondTitle = styled.h3`
-    color: ${(props) => props.theme.text};
-`
 
-const FormGroup = styled.div`
-    margin-bottom: 20px;
-`
-
-const Label = styled.label`
-    display: block;
-    margin-bottom: 5px;
-    font-size: 20px;
-    color: ${(props) => props.theme.text};
-`
-
-const Input = styled.input`
-    color: ${(props) => props.theme.text};
-    font-size: medium;
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #a5a4a4;
-    border-radius: 3px;
-    background-color: rgba(255, 255, 255, 0.1);
-    &::placeholder {
-        color: #ccc;
-        font-size: 16px;
-    }
-`
-
-const Texrarea = styled.textarea`
-    width: 100%;
-    height: 100px;
-    padding: 10px;
-    color: ${(props) => props.theme.text};
-    font-size: 18px;
-    border: 1px solid #a5a4a4;
-    border-radius: 3px;
-    background-color: rgba(255, 255, 255, 0.1);
-    resize: none;
-    overflow: auto;
-    &::placeholder {
-        color: #ccc;
-        font-size: 16px;
-    }
-`
-
-const StyledSelect = styled.select`
-    appearance: none;
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #a5a4a4;
-    border-radius: 3px;
-    background-color: rgba(255, 255, 255, 0.1);
-    font-size: 16px;
-    color: ${(props) => props.theme.text};
-    cursor: pointer;
-    option {
-        background-color: rgba(0, 0, 0, 0.1);
-    }
-`
-const Option = styled.option`
-    background-color: rgba(0, 0, 0, 0.1);
-    font-size: 16px;
-    color: black;
-    cursor: pointer;
-`
 const Group: React.FC = () => {
     useAutoLogout()
 
@@ -180,15 +55,17 @@ const Group: React.FC = () => {
     }
 
     let role = userObjectFromStorage?.role
-    const [isPanelOpen, setIsPanelOpen] = useState(false)
-
-    const togglePanelPlaylist = () => {
-        setIsPanelOpen(!isPanelOpen)
-    }
+    const [isPanelAddVideoOpen, setIsPanelAddVideoOpen] = useState(false)
+    const [isPanelPlaylistOpen, setIsPanelPlaylistOpen] = useState(false)
 
     const togglePanelAddVideo = () => {
-        setIsPanelOpen(!isPanelOpen)
+        setIsPanelAddVideoOpen(!isPanelAddVideoOpen)
     }
+
+    const togglePanelPlaylist = () => {
+        setIsPanelPlaylistOpen(!isPanelPlaylistOpen)
+    }
+
     const { id } = useParams<{ id?: string }>()
 
     const dispatch = useDispatch()
@@ -236,7 +113,9 @@ const Group: React.FC = () => {
                     </VipButton>
                 ) : null}
                 {role === 'manager' || role === 'admin' ? (
-                    <VipButton>Добавить видео</VipButton>
+                    <VipButton onClick={togglePanelAddVideo}>
+                        Добавить видео
+                    </VipButton>
                 ) : null}
                 {role === 'manager' || role === 'admin' ? (
                     <VipButton>Добавить пользователя</VipButton>
@@ -244,14 +123,19 @@ const Group: React.FC = () => {
                 {role === 'manager' || role === 'admin' ? (
                     <VipButton>Просмотр заявок</VipButton>
                 ) : null}
-
                 <PanelCreatePlaylist
-                    isPanelOpen={isPanelOpen}
+                    isPanelOpen={isPanelPlaylistOpen}
                     togglePanelPlaylist={togglePanelPlaylist}
+                    groupId={group.id}
+                />
+                <PanelAddVideo
+                    isPanelOpen={isPanelAddVideoOpen}
+                    togglePanelAddVideo={togglePanelAddVideo}
                     groupId={group.id}
                 />
             </>
             <PlaylistItem groupId={group.id} />
+            <VideoItems groupId={group.id} />
         </Layout>
     )
 }

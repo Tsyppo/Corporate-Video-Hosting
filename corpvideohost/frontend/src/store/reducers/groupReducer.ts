@@ -32,6 +32,17 @@ const groupReducer: Reducer<GroupState, GroupAction> = (
                       )
                     : null,
             }
+        case GroupActionTypes.UPDATE_GROUP:
+            return {
+                ...state,
+                groups: state.groups
+                    ? state.groups.map((group) =>
+                          group.id === action.payload.id
+                              ? action.payload
+                              : group,
+                      )
+                    : null,
+            }
         case GroupActionTypes.SET_SEARCH_TERM:
             return {
                 ...state,

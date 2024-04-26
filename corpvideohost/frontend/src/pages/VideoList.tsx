@@ -4,7 +4,7 @@ import { useTypedSelector } from '../hooks/useTypedSelector'
 import styled from 'styled-components'
 import Layout from '../components/Layout'
 import TokenChecker from '../components/TokenChecker'
-import VideoItem from '../components/VideoItem'
+import VideoItem from '../components/VideoItems'
 import PanelCreateVideo from '../components/PanelCreateVideo'
 import useAutoLogout from '../hooks/useAutoLogout'
 
@@ -27,23 +27,22 @@ const Title = styled.h1`
 `
 
 const VideoList: React.FC = () => {
+    const [isPanelOpen, setIsPanelOpen] = useState(false)
+    const { fetchVideoListUser, deleteVideo } = useActions()
     useAutoLogout()
-    const { fetchVideoList, deleteVideo } = useActions()
+
     const user = localStorage.getItem('user')
     let userObjectFromStorage: any | null = null
 
     if (user !== null) {
         userObjectFromStorage = JSON.parse(user)
-        console.log(userObjectFromStorage)
     } else {
         console.log('Объект пользователя отсутствует в localStorage')
     }
 
     useEffect(() => {
-        fetchVideoList(userObjectFromStorage.id)
+        fetchVideoListUser(userObjectFromStorage.id)
     }, [])
-
-    const [isPanelOpen, setIsPanelOpen] = useState(false)
 
     const togglePanel = () => {
         setIsPanelOpen(!isPanelOpen)

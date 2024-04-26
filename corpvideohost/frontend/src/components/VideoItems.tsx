@@ -5,6 +5,7 @@ import { useTypedSelector } from '../hooks/useTypedSelector'
 import styled from 'styled-components'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Playlist } from '../types/playlist'
+import { Group } from '../types/group'
 
 const VideoContainer = styled.div`
     margin-top: 40px;
@@ -77,11 +78,15 @@ const StyledLink = styled(Link)`
 
 interface VideoItemProps {
     playlistId?: number
+    groupId?: number
 }
 
-const VideoItem: React.FC<VideoItemProps> = (playlistId) => {
-    const { fetchVideoList, deleteVideo } = useActions()
+const VideoItems: React.FC<VideoItemProps> = (props) => {
+    const { playlistId, groupId } = props
+    const { fetchVideoListUser, deleteVideo } = useActions()
     const videos = useTypedSelector((state) => state.video.videos)
+    const playlists = useTypedSelector((state) => state.playlist.playlists)
+    const groups = useTypedSelector((state) => state.group.groups)
 
     const user = localStorage.getItem('user')
     let userObjectFromStorage: any | null = null
@@ -93,13 +98,13 @@ const VideoItem: React.FC<VideoItemProps> = (playlistId) => {
         console.log('Объект пользователя отсутствует в localStorage')
     }
 
-    try {
-        useEffect(() => {
-            fetchVideoList(userObjectFromStorage.id)
-        }, [])
-    } catch {
-        console.log('error')
-    }
+    useEffect(() => {
+        if (userObjectFromStorage && userObjectFromStorage.id) {
+            fetchVideoListUser(userObjectFromStorage.id)
+        } else {
+            console.error('User ID is null')
+        }
+    }, [])
 
     const handleDelete = (videoId: number) => {
         deleteVideo(videoId)
@@ -109,35 +114,53 @@ const VideoItem: React.FC<VideoItemProps> = (playlistId) => {
         return <div>Videos not found</div>
     }
 
+    if (!playlists) {
+        return <div>Videos not found</div>
+    }
+
     // Убедитесь, что массивы videos и playlist.videos не пустые
-    let playlistVideos: Video[] = []
-    const actualPlaylistId = playlistId.playlistId
+    let filtredVideos: Video[] = []
+    const actualGroupId = groupId
+    const actualPlaylistId = playlistId
 
-    if (actualPlaylistId != null) {
-        const playlists = useTypedSelector((state) => state.playlist.playlists)
-
-        if (!playlists) {
-            return <div>Playlists not found</div>
+    if (actualPlaylistId != null || actualGroupId != null) {
+        if (!playlists && !groups) {
+            return <div>Playlists and Groups not found</div>
         }
 
-        // Находим плейлист по переданному playlistId
-        const playlist: Playlist | undefined = playlists.find(
-            (playlist) => playlist.id === actualPlaylistId,
-        )
-
-        // Если плейлист найден и у него есть видео, фильтруем видео по их id
-        if (playlist) {
-            playlistVideos = videos.filter((video) =>
-                playlist.videos.some(
-                    (playlistVideoId) => playlistVideoId === video.id,
-                ),
+        if (actualPlaylistId != null && playlists) {
+            const playlist: Playlist | undefined = playlists.find(
+                (playlist) => playlist.id === actualPlaylistId,
             )
-        } else {
-            // Если плейлист не найден или у него нет видео, отображаем все видео
-            playlistVideos = videos
+
+            if (playlist) {
+                filtredVideos = videos.filter((video) =>
+                    playlist.videos.some(
+                        (playlistVideoId) => playlistVideoId === video.id,
+                    ),
+                )
+            } else {
+                console.log('Playlist not found')
+            }
+        }
+
+        if (actualGroupId != null && groups) {
+            const group: Group | undefined = groups.find(
+                (group) => group.id === actualGroupId,
+            )
+
+            if (group) {
+                filtredVideos = videos.filter((video) =>
+                    group.videos.some(
+                        (groupVideoId) => groupVideoId === video.id,
+                    ),
+                )
+            } else {
+                console.log('Group not found')
+            }
         }
     } else {
-        playlistVideos = videos
+        filtredVideos = videos
     }
 
     // Функция для получения имени пользователя по его идентификатору
@@ -150,8 +173,8 @@ const VideoItem: React.FC<VideoItemProps> = (playlistId) => {
 
     return (
         <div>
-            {playlistVideos &&
-                playlistVideos.map((video: Video) => (
+            {filtredVideos &&
+                filtredVideos.map((video: Video) => (
                     <div key={video.id}>
                         <VideoContainer>
                             <VideoPlace>
@@ -194,4 +217,4 @@ const VideoItem: React.FC<VideoItemProps> = (playlistId) => {
     )
 }
 
-export default VideoItem
+export default VideoItems

@@ -3,7 +3,7 @@ import Layout from '../components/Layout'
 import styled from 'styled-components'
 import { useTypedSelector } from '../hooks/useTypedSelector'
 import TokenChecker from '../components/TokenChecker'
-import VideoItem from '../components/VideoItem'
+import VideoItems from '../components/VideoItems'
 import { useNavigate, useParams } from 'react-router-dom'
 import useAutoLogout from '../hooks/useAutoLogout'
 import { Playlist as PlaylistType } from '../types/playlist'
@@ -59,7 +59,7 @@ const PlaylistDetail: React.FC = () => {
             ></TokenChecker>
             <Title>{playlist.title}</Title>
             {/* Передать отфильтрованный список видео в компонент VideoItem */}
-            <VideoItem playlistId={playlistId} />
+            <VideoItems playlistId={playlistId} />
         </Layout>
     )
 }

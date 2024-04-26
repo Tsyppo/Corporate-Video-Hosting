@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import { useActions } from '../hooks/useAction'
 import { Video } from '../types/video'
 import { useTypedSelector } from '../hooks/useTypedSelector'
+import { Group } from '../types/group'
 
 const Button = styled.button`
     height: 40px;
@@ -34,7 +35,7 @@ const ButtonPanel = styled.button`
 `
 
 const ButtonClosePanel = styled(ButtonPanel)`
-    margin-top: 140px;
+    margin-top: 280px;
     margin-left: 70%;
 `
 
@@ -84,53 +85,11 @@ const FormContainer = styled.form`
 
 const MainTitle = styled.h1`
     color: ${(props) => props.theme.text};
+    margin-left: 140px;
 `
 
 const FormGroup = styled.div`
     margin-bottom: 20px;
-`
-
-const Label = styled.label`
-    display: block;
-    margin-bottom: 5px;
-    font-size: 20px;
-    color: ${(props) => props.theme.text};
-`
-
-const Input = styled.input`
-    color: ${(props) => props.theme.text};
-    font-size: medium;
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #a5a4a4;
-    border-radius: 3px;
-    background-color: rgba(255, 255, 255, 0.1);
-    &::placeholder {
-        color: #ccc;
-        font-size: 16px;
-    }
-`
-
-const StyledSelect = styled.select`
-    appearance: none;
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #a5a4a4;
-    border-radius: 3px;
-    background-color: rgba(255, 255, 255, 0.1);
-    font-size: 16px;
-    color: ${(props) => props.theme.text};
-    cursor: pointer;
-    option {
-        background-color: rgba(0, 0, 0, 0.1);
-    }
-`
-
-const Option = styled.option`
-    background-color: rgba(0, 0, 0, 0.1);
-    font-size: 16px;
-    color: black;
-    cursor: pointer;
 `
 
 const VideoCheckboxContainer = styled.div`
@@ -147,15 +106,13 @@ const VideoCheckboxLabel = styled.label`
     color: ${(props) => props.theme.text};
 `
 
-const PanelCreatePlaylist: React.FC<{
+const PanelAddVideo: React.FC<{
     isPanelOpen: boolean
-    togglePanelPlaylist: () => void
+    togglePanelAddVideo: () => void
     groupId: number
-}> = ({ isPanelOpen, togglePanelPlaylist, groupId }) => {
-    const { fetchVideoListUser, uploadPlaylist } = useActions()
+}> = ({ isPanelOpen, togglePanelAddVideo, groupId }) => {
+    const { fetchVideoListUser, updateGroup } = useActions()
     const videos = useTypedSelector((state) => state.video.videos)
-    const [title, setTitle] = useState('')
-    const [status, setStatus] = useState('unlisted')
     const [selectedVideos, setSelectedVideos] = useState<Video[]>([])
 
     const user = localStorage.getItem('user')
@@ -171,14 +128,6 @@ const PanelCreatePlaylist: React.FC<{
         fetchVideoListUser(userObjectFromStorage.id)
     }, [])
 
-    const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setTitle(e.target.value)
-    }
-
-    const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setStatus(e.target.value)
-    }
-
     const handleCheckboxChange = (video: Video) => {
         setSelectedVideos((prevSelectedVideos) =>
             prevSelectedVideos.includes(video)
@@ -190,21 +139,11 @@ const PanelCreatePlaylist: React.FC<{
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
-        if (!title || !status) {
-            console.error('Please fill in all fields')
-            return
-        }
+        // Создаем массив id выбранных видео
+        const selectedVideoIds = selectedVideos.map((video) => video.id)
 
-        const formData = new FormData()
-        formData.append('title', title)
-        formData.append('status', status)
-        formData.append('group', groupId.toString())
-
-        selectedVideos.forEach((video) => {
-            formData.append('videos', video.id.toString())
-        })
-
-        uploadPlaylist(formData)
+        // Обновляем группу, добавляя выбранные видео
+        updateGroup(groupId, { videos: selectedVideoIds } as Partial<Group>)
     }
 
     if (!isPanelOpen) return null
@@ -212,21 +151,12 @@ const PanelCreatePlaylist: React.FC<{
     return ReactDOM.createPortal(
         <>
             <Overlay>
-                <OverlayContent onClick={togglePanelPlaylist} />{' '}
+                <OverlayContent onClick={togglePanelAddVideo} />{' '}
             </Overlay>
             <PanelContainer>
-                <MainTitle>Создание плейлиста</MainTitle>
+                <MainTitle>Добавление видео</MainTitle>
                 <ContainerPanel>
                     <FormContainer onSubmit={handleSubmit}>
-                        <FormGroup>
-                            <Input
-                                type="text"
-                                placeholder="Title"
-                                id="title"
-                                value={title}
-                                onChange={handleTitleChange}
-                            />
-                        </FormGroup>
                         <FormGroup>
                             <VideoCheckboxContainer>
                                 {videos &&
@@ -246,22 +176,10 @@ const PanelCreatePlaylist: React.FC<{
                                     ))}
                             </VideoCheckboxContainer>
                         </FormGroup>
-                        <FormGroup>
-                            <Label htmlFor="status">Статус:</Label>
-                            <StyledSelect
-                                id="status"
-                                value={status}
-                                onChange={handleStatusChange}
-                            >
-                                <Option value="public">Public</Option>
-                                <Option value="private">Private</Option>
-                                <Option value="unlisted">Unlisted</Option>
-                            </StyledSelect>
-                        </FormGroup>
-                        <Button type="submit">Создать</Button>
+                        <Button type="submit">Добавить</Button>
                     </FormContainer>
                 </ContainerPanel>
-                <ButtonClosePanel onClick={togglePanelPlaylist}>
+                <ButtonClosePanel onClick={togglePanelAddVideo}>
                     Закрыть панель
                 </ButtonClosePanel>
             </PanelContainer>
@@ -270,4 +188,4 @@ const PanelCreatePlaylist: React.FC<{
     )
 }
 
-export default PanelCreatePlaylist
+export default PanelAddVideo

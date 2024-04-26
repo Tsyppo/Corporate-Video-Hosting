@@ -155,7 +155,6 @@ const PanelCreateGroup: React.FC<{
 
     if (user !== null) {
         userObjectFromStorage = JSON.parse(user)
-        console.log(userObjectFromStorage)
     } else {
         console.log('Объект пользователя отсутствует в localStorage')
     }

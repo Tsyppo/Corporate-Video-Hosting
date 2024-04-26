@@ -41,6 +41,27 @@ export const uploadGroup = (formData: FormData) => {
     }
 }
 
+export const updateGroup = (
+    groupId: number,
+    updatedGroupData: Partial<Group>,
+) => {
+    return async (dispatch: Dispatch<GroupAction>) => {
+        try {
+            const response = await axios.patch<Group>(
+                `http://127.0.0.1:8000/api/groups/${groupId}/`,
+                updatedGroupData,
+            )
+            dispatch({
+                type: GroupActionTypes.UPDATE_GROUP,
+                payload: response.data,
+            })
+            console.log('Group updated successfully')
+        } catch (error) {
+            console.error('Error updating group:', error)
+        }
+    }
+}
+
 export const deleteGroup = (groupId: number) => {
     return async (dispatch: Dispatch<GroupAction>) => {
         try {
