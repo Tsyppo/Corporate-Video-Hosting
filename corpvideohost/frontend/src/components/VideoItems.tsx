@@ -87,7 +87,6 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
     const videos = useTypedSelector((state) => state.video.videos)
     const playlists = useTypedSelector((state) => state.playlist.playlists)
     const groups = useTypedSelector((state) => state.group.groups)
-
     const user = localStorage.getItem('user')
     let userObjectFromStorage: any | null = null
     const location = useLocation()
@@ -111,10 +110,6 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
     }
 
     if (!videos) {
-        return <div>Videos not found</div>
-    }
-
-    if (!playlists) {
         return <div>Videos not found</div>
     }
 

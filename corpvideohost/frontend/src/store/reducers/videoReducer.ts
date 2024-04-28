@@ -3,6 +3,7 @@ import { VideoAction, VideoState, VideoActionTypes } from '../../types/video'
 const initialState: VideoState = {
     videos: null,
     searchTerm: '',
+    currentVideo: null,
 }
 
 export const videoReducer = (
@@ -14,6 +15,11 @@ export const videoReducer = (
             return {
                 ...state,
                 videos: action.payload,
+            }
+        case VideoActionTypes.FETCH_VIDEO_SUCCESS:
+            return {
+                ...state,
+                currentVideo: action.payload,
             }
         case VideoActionTypes.ADD_VIDEO:
             return {

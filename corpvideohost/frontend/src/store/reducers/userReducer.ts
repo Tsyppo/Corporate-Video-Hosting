@@ -1,6 +1,7 @@
 import { UserState, UserAction, UserActionTypes, User } from '../../types/user'
 
 const initialState: UserState = {
+    users: null,
     user: null,
     loading: false,
     error: null,
@@ -23,12 +24,20 @@ const userReducer = (state = initialState, action: UserAction): UserState => {
                 loading: false,
                 error: null,
             }
+        case UserActionTypes.FETCH_USER_LIST_SUCCESS:
+            return {
+                ...state,
+                users: action.payload,
+                loading: false,
+                error: null,
+            }
         case UserActionTypes.FETCH_USER_FAILURE:
             return {
                 ...state,
                 loading: false,
                 error: action.payload,
             }
+
         default:
             return state
     }

@@ -1,11 +1,17 @@
-import React from 'react'
+import React, { Dispatch, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTypedSelector } from '../hooks/useTypedSelector'
 import { Video as VideoType } from '../types/video'
 import Layout from '../components/Layout'
 import styled from 'styled-components'
 import TokenChecker from '../components/TokenChecker'
+import CommentItems from '../components/CommentItems'
 import useAutoLogout from '../hooks/useAutoLogout'
+import { useDispatch } from 'react-redux'
+import { addComment } from '../store/actions/commentActions'
+import { CommentAction } from '../types/comment'
+import { useActions } from '../hooks/useAction'
+import { Comment as CommentType } from '../types/comment'
 
 const Container = styled.div`
     margin-left: 150px;
@@ -21,7 +27,7 @@ const VideoPlace = styled.video`
     padding-top: 30px;
 `
 
-const Texrarea = styled.textarea`
+const Textarea = styled.textarea`
     width: 600px;
     height: 100px;
     padding: 10px;
@@ -33,7 +39,7 @@ const Texrarea = styled.textarea`
     resize: none;
     overflow: auto;
     &::placeholder {
-        color: #ccc;
+        color: ${(props) => props.theme.text};
         font-size: 16px;
     }
 `
@@ -45,7 +51,7 @@ const Text = styled.h4`
 const Button = styled.button`
     height: 40px;
     font-size: medium;
-    margin-left: 10px; /* Добавляем отступ слева */
+    margin-left: 10px;
     background-color: ${(props) => props.theme.headerBackground};
     color: ${(props) => props.theme.headerText};
     transition: background-color 0.3s ease;
@@ -54,30 +60,23 @@ const Button = styled.button`
     border-radius: 5px;
     cursor: pointer;
 `
-const ButtonAddFav = styled.button`
-    height: 40px;
-    font-size: medium;
-    margin-left: 20px; /* Добавляем отступ слева */
-    background-color: ${(props) => props.theme.headerBackground};
-    color: ${(props) => props.theme.headerText};
-    transition: background-color 0.3s ease;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+
+const ButtonAddFav = styled(Button)`
+    margin-left: 20px;
 `
 
 const ButtonAnaliz = styled(ButtonAddFav)`
     margin-left: 710px;
 `
 
-const FlexContainer = styled.div`
-    display: flex; /* Размещаем элементы в строку */
+const FlexContainer = styled.form`
+    display: flex;
+    position: relative;
     margin-top: 20px;
 `
 
 const ContainerVideo = styled.div`
-    display: flex; /* Размещаем элементы в строку */
+    display: flex;
     margin-top: 20px;
     align-items: center;
 `
@@ -87,14 +86,39 @@ const Video: React.FC = () => {
 
     const { id } = useParams<{ id?: string }>()
     const videos = useTypedSelector((state) => state.video.videos)
-    console.log(videos)
-
-    if (!videos) {
-        return <div>Loading...</div>
-    }
+    const [commentText, setCommentText] = useState('')
+    const { addComment, fetchComments, fetchVideoListUser } = useActions()
+    const comments = useTypedSelector((state) => state.comment.comments)
 
     if (!id) {
         return <div>Video ID is not provided</div>
+    }
+
+    const userString = localStorage.getItem('user')
+    const userObjectFromStorage = userString ? JSON.parse(userString) : null
+
+    useEffect(() => {
+        if (id) {
+            fetchComments(parseInt(id))
+        } else {
+            console.error('fetchComments ID is null')
+        }
+    }, [])
+
+    useEffect(() => {
+        if (id) {
+            fetchVideoListUser(parseInt(id))
+        } else {
+            console.error('fetchVideo ID is null')
+        }
+    }, [])
+
+    if (!comments) {
+        return <div>Comments loading...</div>
+    }
+
+    if (!videos) {
+        return <div>Video loading...</div>
     }
 
     const video: VideoType | undefined = videos.find(
@@ -103,6 +127,25 @@ const Video: React.FC = () => {
 
     if (!video) {
         return <div>Video not found</div>
+    }
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+
+        if (!commentText.trim()) {
+            console.error('Please fill in the comment field')
+            return
+        }
+
+        const formData = new FormData()
+        formData.append('text', commentText)
+        formData.append('liked_by_user', 'false')
+        formData.append('likes_count', '0')
+        formData.append('user', userObjectFromStorage?.id.toString() ?? '')
+        formData.append('video', id ?? '')
+        formData.append('parent_comment', '')
+        addComment(formData)
+        setCommentText('')
     }
 
     return (
@@ -120,10 +163,19 @@ const Video: React.FC = () => {
                 </ContainerVideo>
                 <Text>{video.description}</Text>
                 <VideoTitle>Комментарии</VideoTitle>
-                <FlexContainer>
-                    <Texrarea placeholder="Комментарии" />
-                    <Button>Отправить комментарий</Button>
+                <FlexContainer onSubmit={handleSubmit}>
+                    <Textarea
+                        placeholder="Комментарий"
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                    />
+                    <Button type="submit">Отправить комментарий</Button>
                 </FlexContainer>
+                {comments
+                    .filter((comment) => comment.parent_comment === null)
+                    .map((comment) => (
+                        <CommentItems key={comment.id} comment={comment} />
+                    ))}
             </Container>
         </Layout>
     )

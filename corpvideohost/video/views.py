@@ -119,7 +119,10 @@ def view_history_detail(request, pk):
 @api_view(["GET", "POST"])
 def comment_list(request):
     if request.method == "GET":
-        queryset = Comment.objects.all()
+        if "video_id" in request.query_params:
+            queryset = Comment.objects.filter(video_id=request.query_params["video_id"])
+        else:
+            queryset = Comment.objects.all()
         serializer = CommentSerializer(queryset, many=True)
         return Response(serializer.data)
     elif request.method == "POST":

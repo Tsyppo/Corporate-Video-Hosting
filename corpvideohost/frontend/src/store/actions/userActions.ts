@@ -4,6 +4,22 @@ import { UserActionTypes, UserAction, User } from '../../types/user'
 import { RootState } from '../reducers'
 import { useNavigate } from 'react-router-dom'
 
+export const fetchListUser = () => {
+    return async (dispatch: Dispatch<UserAction>) => {
+        try {
+            const response = await axios.get<User[]>(
+                `http://127.0.0.1:8000/api/users/`,
+            )
+            dispatch({
+                type: UserActionTypes.FETCH_USER_LIST_SUCCESS,
+                payload: response.data,
+            })
+        } catch (error) {
+            console.error('Error fetching user list:', error)
+        }
+    }
+}
+
 export const loginUser = (username: string, password: string) => {
     return async (
         dispatch: Dispatch<UserAction>,
