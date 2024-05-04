@@ -2,8 +2,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("videos/?user=<int:pk>", views.user_video_list, name="user_video_list"),
-    path("videos/", views.all_video_list, name="user_video_list"),
+    path("videos/", views.user_video_list, name="user_video_list"),
+    path("allvideos/", views.all_video_list, name="all_video_list"),
     path("videos/<int:pk>/", views.video_detail, name="video_detail"),
     path("viewhistory/", views.view_history_list, name="view_history_list"),
     path(

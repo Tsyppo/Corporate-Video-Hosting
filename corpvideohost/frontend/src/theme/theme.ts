@@ -6,6 +6,7 @@ export const lightTheme = {
     buttonBackground: '#196369',
     buttonColor: '#fff',
     border: '1px solid #333',
+    playlistobject: '#fcfcfc7f',
 }
 
 export const darkTheme = {
@@ -16,4 +17,5 @@ export const darkTheme = {
     buttonBackground: '#155054',
     buttonColor: '#fff',
     border: '1px solid #000',
+    playlistobject: '#1717177e',
 }

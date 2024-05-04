@@ -27,7 +27,6 @@ const FlexContainer = styled.div`
 const FlexContainerAnswer = styled.div`
     display: flex;
     position: relative;
-    margin-left: 80px;
 `
 
 const CommentText = styled.div`
@@ -66,7 +65,7 @@ const CommentButton = styled.button`
     transition: background-color 0.3s ease;
 
     &:hover {
-        background-color: #0056b3;
+        background-color: ${(props) => props.theme.buttonBackground};
     }
 `
 
@@ -113,6 +112,7 @@ const Button = styled.button`
 
 const Answer = styled.div`
     margin-top: 10px;
+    margin-left: 80px;
 `
 
 const CommentItems: React.FC<{ comment: CommentType }> = ({ comment }) => {

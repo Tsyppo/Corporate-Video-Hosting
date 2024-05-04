@@ -41,7 +41,6 @@ const Profile: React.FC = () => {
     useAutoLogout()
 
     const userString = localStorage.getItem('user')
-    const { user } = useTypedSelector((state) => state.user)
 
     let userObjectFromStorage
 

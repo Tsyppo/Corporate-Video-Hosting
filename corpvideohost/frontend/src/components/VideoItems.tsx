@@ -6,6 +6,7 @@ import styled from 'styled-components'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Playlist } from '../types/playlist'
 import { Group } from '../types/group'
+import VideoPlayer from './VideoPlayer'
 
 const VideoContainer = styled.div`
     margin-top: 40px;
@@ -83,7 +84,7 @@ interface VideoItemProps {
 
 const VideoItems: React.FC<VideoItemProps> = (props) => {
     const { playlistId, groupId } = props
-    const { fetchVideoListUser, deleteVideo } = useActions()
+    const { fetchVideoList, deleteVideo } = useActions()
     const videos = useTypedSelector((state) => state.video.videos)
     const playlists = useTypedSelector((state) => state.playlist.playlists)
     const groups = useTypedSelector((state) => state.group.groups)
@@ -99,7 +100,7 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
 
     useEffect(() => {
         if (userObjectFromStorage && userObjectFromStorage.id) {
-            fetchVideoListUser(userObjectFromStorage.id)
+            fetchVideoList()
         } else {
             console.error('User ID is null')
         }
@@ -172,10 +173,7 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
                 filtredVideos.map((video: Video) => (
                     <div key={video.id}>
                         <VideoContainer>
-                            <VideoPlace>
-                                <source src={video.video} type="video/mp4" />
-                                Ваш браузер не поддерживает видео.
-                            </VideoPlace>
+                            <VideoPlayer video={video}></VideoPlayer>
                             <VideoInfoContainer>
                                 <VideoTitle>
                                     <StyledLink to={`/video/${video.id}`}>

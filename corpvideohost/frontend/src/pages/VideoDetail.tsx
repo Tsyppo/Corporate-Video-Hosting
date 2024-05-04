@@ -12,6 +12,7 @@ import { addComment } from '../store/actions/commentActions'
 import { CommentAction } from '../types/comment'
 import { useActions } from '../hooks/useAction'
 import { Comment as CommentType } from '../types/comment'
+import VideoPlayer from '../components/VideoPlayer'
 
 const Container = styled.div`
     margin-left: 150px;
@@ -107,7 +108,7 @@ const Video: React.FC = () => {
 
     useEffect(() => {
         if (id) {
-            fetchVideoListUser(parseInt(id))
+            fetchVideoListUser(5)
         } else {
             console.error('fetchVideo ID is null')
         }
@@ -152,10 +153,7 @@ const Video: React.FC = () => {
         <Layout>
             <TokenChecker targetRoute={`/video/${video.id}`}></TokenChecker>
             <Container>
-                <VideoPlace controls>
-                    <source src={video.video} type="video/mp4" />
-                    Your browser does not support the video.
-                </VideoPlace>
+                <VideoPlayer video={video}></VideoPlayer>
                 <ContainerVideo>
                     <VideoTitle>{video.title}</VideoTitle>
                     <ButtonAnaliz>Аналитика</ButtonAnaliz>

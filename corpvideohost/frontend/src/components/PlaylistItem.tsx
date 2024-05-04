@@ -8,6 +8,7 @@ import { fetchPlaylistList } from '../store/actions/playlistActions'
 
 const PlaylistContainer = styled.div`
     margin-top: 20px;
+    width: 800px;
 `
 
 const PlaylistTitle = styled.h3`
@@ -19,17 +20,14 @@ const PlaylistObject = styled.div`
     align-items: center;
     margin-top: 10px;
     padding: 10px;
-    border: 5px;
     border-radius: 50px;
-    margin-right: 100px;
-    border: ${(props) => props.theme.border};
-    background-color: ${(props) => props.theme.body};
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: ${(props) => props.theme.playlistobject};
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     cursor: pointer;
     &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 8px 8px rgba(0, 0, 0, 0.2);
     }
 `
 

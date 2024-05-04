@@ -9,8 +9,11 @@ import VideoList from './pages/VideoList'
 import Video from './pages/VideoDetail'
 import GroupList from './pages/GroupList'
 import PlaylistDetail from './pages/PlaylistDetail'
+import VideoPlayerComponent from './components/VideoPlayer'
 
 const App: React.FC = () => {
+    const videoFolder = 'https://storage.yandexcloud.net/videohostvideos/sample'
+
     return (
         <Router>
             <Routes>

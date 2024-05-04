@@ -167,7 +167,6 @@ const PanelCreateVideo: React.FC<{
 
     if (user !== null) {
         userObjectFromStorage = JSON.parse(user)
-        console.log(userObjectFromStorage)
     } else {
         console.log('Объект пользователя отсутствует в localStorage')
     }
@@ -219,7 +218,7 @@ const PanelCreateVideo: React.FC<{
             formData.append('creator', userObjectFromStorage.id)
         }
 
-        uploadVideo(formData)
+        uploadVideo(formData, userObjectFromStorage.id)
     }
 
     if (!isPanelOpen) return null

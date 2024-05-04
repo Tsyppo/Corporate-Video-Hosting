@@ -18,6 +18,22 @@ export const fetchVideoListUser = (user: number) => {
     }
 }
 
+export const fetchVideoList = () => {
+    return async (dispatch: Dispatch<VideoAction>) => {
+        try {
+            const response = await axios.get<Video[]>(
+                `http://127.0.0.1:8000/api/allvideos/`,
+            )
+            dispatch({
+                type: VideoActionTypes.FETCH_VIDEO_LIST_SUCCESS,
+                payload: response.data,
+            })
+        } catch (error) {
+            console.error('Error fetching video list:', error)
+        }
+    }
+}
+
 export const fetchVideo = (video: number) => {
     return async (dispatch: Dispatch<VideoAction>) => {
         try {
@@ -34,11 +50,11 @@ export const fetchVideo = (video: number) => {
     }
 }
 
-export const uploadVideo = (formData: FormData) => {
+export const uploadVideo = (formData: FormData, user: number) => {
     return async (dispatch: Dispatch<VideoAction>) => {
         try {
             const response = await axios.post<Video>(
-                'http://127.0.0.1:8000/api/videos/',
+                `http://127.0.0.1:8000/api/videos/?user=${user}`,
                 formData,
                 {
                     headers: {

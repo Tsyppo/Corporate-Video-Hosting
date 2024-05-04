@@ -1,12 +1,18 @@
-import requests
+import os
+import subprocess
+import sys
+from yandex.cloud import storage
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
+from corpvideohost import settings
 from user.models import User
 from .models import Video, ViewHistory, Comment
 from .serializers import VideoSerializer, ViewHistorySerializer, CommentSerializer
+
+import boto3
 
 
 @api_view(["GET", "POST"])
@@ -23,7 +29,8 @@ def user_video_list(request):
             )
     elif request.method == "POST":
         video_file = request.FILES.get("video")
-        if video_file:
+        processed_folder_url = process_video(video_file)
+        if processed_folder_url:
             # Получаем данные пользователя из запроса
             user_id = request.data.get("creator")
             # Ищем пользователя по его id
@@ -32,10 +39,11 @@ def user_video_list(request):
                 video = Video.objects.create(
                     title=request.data.get("title"),
                     description=request.data.get("description"),
-                    video=video_file,
+                    video=processed_folder_url,
                     status=request.data.get("status"),
                     creator=creator,
                 )
+
                 serializer = VideoSerializer(video)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
@@ -46,6 +54,71 @@ def user_video_list(request):
             return Response(
                 {"error": "No video file provided"}, status=status.HTTP_400_BAD_REQUEST
             )
+
+
+def create_folder_and_upload_files(local_folder_path, ycs_bucket_name, ycs_folder_name):
+    # Инициализация клиента для работы с Yandex Object Storage
+    client = boto3.client(
+        "s3",
+        endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+        aws_access_key_id=settings.AWS_STORAGE_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_STORAGE_SECRET_ACCESS_KEY,
+    )
+
+    # Создание новой папки в YCS
+    client.put_object(Bucket=ycs_bucket_name, Key=f"{ycs_folder_name}/")
+
+    # Получение списка файлов в локальной папке
+    local_files = os.listdir(local_folder_path)
+
+    # Загрузка файлов из локальной папки в YCS
+    for filename in local_files:
+        local_file_path = os.path.join(local_folder_path, filename)
+        ycs_file_path = f"{ycs_folder_name}/{filename}"
+        client.upload_file(local_file_path, ycs_bucket_name, ycs_file_path)
+
+
+def process_video(video_file):
+    temp_directory = os.path.join("/tmp", "video_files")
+    os.makedirs(temp_directory, exist_ok=True)
+
+    # Получаем путь к файлу
+    video_path = os.path.join(temp_directory, video_file.name)
+
+    # Сохраняем файл на диск
+    with open(video_path, "wb") as f:
+        for chunk in video_file.chunks():
+            f.write(chunk)
+
+    print(video_file)
+    # Получаем путь к текущему файлу
+    current_file_path = os.path.abspath(__file__)
+    # Получаем путь к директории, содержащей текущий файл
+    current_directory = os.path.dirname(current_file_path)
+    # Путь к директории, содержащей скрипт
+    script_directory = os.path.join(current_directory, "..", "scripts")
+    # Путь к скрипту
+    script_path = os.path.join(script_directory, "script.bat")
+
+    name_without_extension = os.path.splitext(video_file.name)[0]
+    print(name_without_extension)
+
+    try:
+        subprocess.run([script_path, video_path], check=True, shell=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Ошибка при выполнении скрипта: {e}")
+
+    local_folder_path = f"C:\\Users\\ANTON\\Диплом\\Corporate-Video-Hosting\\corpvideohost\\scripts\\{name_without_extension}"
+
+    # Имя бакета, куда будут загружены файлы
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+    # Загрузка содержимого папки
+    create_folder_and_upload_files(
+        local_folder_path, bucket_name, name_without_extension
+    )
+
+    # Возвращаем ссылку на папку с обработанными файлами в Object Storage
+    return f"{name_without_extension}"
 
 
 @api_view(["GET"])
