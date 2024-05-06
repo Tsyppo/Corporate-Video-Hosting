@@ -48,6 +48,50 @@ const groupReducer: Reducer<GroupState, GroupAction> = (
                 ...state,
                 searchTerm: action.payload,
             }
+        case GroupActionTypes.APPLY_TO_GROUP:
+            return {
+                ...state,
+                groups: state.groups
+                    ? state.groups.map((group) =>
+                          group.id === action.payload.id
+                              ? action.payload
+                              : group,
+                      )
+                    : null,
+            }
+        case GroupActionTypes.CANCEL_APPLICATION:
+            return {
+                ...state,
+                groups: state.groups
+                    ? state.groups.map((group) =>
+                          group.id === action.payload.id
+                              ? action.payload
+                              : group,
+                      )
+                    : null,
+            }
+        case GroupActionTypes.ADD_TO_MEMBERS:
+            return {
+                ...state,
+                groups: state.groups
+                    ? state.groups.map((group) =>
+                          group.id === action.payload.id
+                              ? action.payload
+                              : group,
+                      )
+                    : null,
+            }
+        case GroupActionTypes.DELETE_MEMBERS:
+            return {
+                ...state,
+                groups: state.groups
+                    ? state.groups.map((group) =>
+                          group.id === action.payload.id
+                              ? action.payload
+                              : group,
+                      )
+                    : null,
+            }
         default:
             return state
     }

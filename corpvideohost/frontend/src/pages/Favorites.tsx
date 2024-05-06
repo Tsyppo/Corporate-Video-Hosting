@@ -3,7 +3,7 @@ import Layout from '../components/Layout'
 import styled from 'styled-components'
 import { useTypedSelector } from '../hooks/useTypedSelector'
 import TokenChecker from '../components/TokenChecker'
-import VideoItem from '../components/VideoItems'
+import VideoItems from '../components/VideoItems'
 import { useNavigate } from 'react-router-dom'
 import useAutoLogout from '../hooks/useAutoLogout'
 
@@ -43,7 +43,7 @@ const Favorites: React.FC = () => {
         <Layout>
             <TokenChecker targetRoute="/favorites"></TokenChecker>
             <Title>Избранные видео</Title>
-            <VideoItem></VideoItem>
+            <VideoItems></VideoItems>
         </Layout>
     )
 }

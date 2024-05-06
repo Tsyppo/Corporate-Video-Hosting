@@ -5,7 +5,8 @@ export interface Group {
     description: string
     creation_date: string
     creator: number
-    members: []
+    members: number[]
+    waiting: number[]
     videos: []
     playlists: []
 }
@@ -21,6 +22,10 @@ export enum GroupActionTypes {
     DELETE_GROUP = 'DELETE_GROUP',
     UPDATE_GROUP = 'UPDATE_GROUP',
     SET_SEARCH_TERM = 'SET_SEARCH_TERM',
+    APPLY_TO_GROUP = 'APPLY_TO_GROUP',
+    CANCEL_APPLICATION = 'CANCEL_APPLICATION',
+    ADD_TO_MEMBERS = 'ADD_TO_MEMBERS',
+    DELETE_MEMBERS = 'DELETE_MEMBERS',
 }
 
 export interface FetchGroupListSuccessAction {
@@ -46,9 +51,33 @@ export interface SetSearchTermAction {
     payload: string
 }
 
+export interface ApplyToGroupAction {
+    type: GroupActionTypes.APPLY_TO_GROUP
+    payload: Group
+}
+
+export interface CancelApplicationAction {
+    type: GroupActionTypes.CANCEL_APPLICATION
+    payload: Group
+}
+
+export interface AddToMembersAction {
+    type: GroupActionTypes.ADD_TO_MEMBERS
+    payload: Group
+}
+
+export interface DeleteMembersAction {
+    type: GroupActionTypes.DELETE_MEMBERS
+    payload: Group
+}
+
 export type GroupAction =
     | FetchGroupListSuccessAction
     | AddGroupAction
     | DeleteGroupAction
     | UpdateGroupAction
     | SetSearchTermAction
+    | ApplyToGroupAction
+    | CancelApplicationAction
+    | AddToMembersAction
+    | DeleteMembersAction

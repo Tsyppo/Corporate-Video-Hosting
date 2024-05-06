@@ -76,6 +76,64 @@ def group_detail(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@api_view(["PATCH"])
+def update_group_waiting(request, pk):
+    try:
+        group = Group.objects.get(pk=pk)
+    except Group.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "PATCH":
+        waiting = request.data.get("waiting", [])
+
+        if waiting:
+            group.waiting.add(*waiting)
+
+        serializer = GroupSerializer(group)
+        return Response(serializer.data)
+
+
+@api_view(["PATCH"])
+def cancel_application(request, pk, userId):
+    try:
+        group = Group.objects.get(pk=pk)
+    except Group.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "PATCH":
+        # Получаем список пользователей ожидающих вступления в группу
+        waiting_users = list(group.waiting.values_list("id", flat=True))
+
+        # Проверяем, является ли пользователь одним из ожидающих вступления
+        if userId in waiting_users:
+            # Удаляем пользователя из списка ожидающих
+            group.waiting.remove(userId)
+            serializer = GroupSerializer(group)
+            return Response(serializer.data)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["PATCH"])
+def add_to_members(request, pk):
+    try:
+        group = Group.objects.get(pk=pk)
+    except Group.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "PATCH":
+        userId = request.data.get("userId")
+
+        # Проверяем, что пользователь и группа существуют
+        if userId is not None:
+            # Добавляем пользователя в список members
+            group.members.add(userId)
+            serializer = GroupSerializer(group)
+            return Response(serializer.data)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(["GET", "POST"])
 def playlist_list(request):
     if request.method == "GET":

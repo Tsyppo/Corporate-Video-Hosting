@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Layout from '../components/Layout'
 import styled from 'styled-components'
@@ -8,10 +8,17 @@ import PlaylistItem from '../components/PlaylistItem'
 import TokenChecker from '../components/TokenChecker'
 import { useTypedSelector } from '../hooks/useTypedSelector'
 import useAutoLogout from '../hooks/useAutoLogout'
-import PanelCreatePlaylist from '../components/PanelCreatePlaylist'
 import { fetchGroupList } from '../store/actions/groupActions'
 import { useDispatch } from 'react-redux'
-import PanelAddVideo from '../components/PanelAddVideo'
+const LazyPanelViewWaitingUserList = React.lazy(
+    () => import('../components/PanelViewWaitingUserList'),
+)
+const LazyPanelCreatePlaylist = React.lazy(
+    () => import('../components/PanelCreatePlaylist'),
+)
+const LazyPanelAddVideo = React.lazy(
+    () => import('../components/PanelAddVideo'),
+)
 
 const Button = styled.button`
     height: 40px;
@@ -41,11 +48,6 @@ const Group: React.FC = () => {
 
     const userString = localStorage.getItem('user')
 
-    if (userString !== null) {
-        const userObjectFromStorage = JSON.parse(userString)
-    } else {
-        console.log('Объект пользователя отсутствует в localStorage')
-    }
     let userObjectFromStorage
 
     if (userString !== null) {
@@ -57,6 +59,8 @@ const Group: React.FC = () => {
     let role = userObjectFromStorage?.role
     const [isPanelAddVideoOpen, setIsPanelAddVideoOpen] = useState(false)
     const [isPanelPlaylistOpen, setIsPanelPlaylistOpen] = useState(false)
+    const [isPanelViewWaitingUserListOpen, setIsPanelViewWaitingUserListOpen] =
+        useState(false)
 
     const togglePanelAddVideo = () => {
         setIsPanelAddVideoOpen(!isPanelAddVideoOpen)
@@ -64,6 +68,9 @@ const Group: React.FC = () => {
 
     const togglePanelPlaylist = () => {
         setIsPanelPlaylistOpen(!isPanelPlaylistOpen)
+    }
+    const togglePanelViewWaitingUserList = () => {
+        setIsPanelViewWaitingUserListOpen(!isPanelViewWaitingUserListOpen)
     }
 
     const { id } = useParams<{ id?: string }>()
@@ -121,18 +128,35 @@ const Group: React.FC = () => {
                     <VipButton>Добавить пользователя</VipButton>
                 ) : null}
                 {role === 'manager' || role === 'admin' ? (
-                    <VipButton>Просмотр заявок</VipButton>
+                    <VipButton onClick={togglePanelViewWaitingUserList}>
+                        Просмотр заявок
+                    </VipButton>
                 ) : null}
-                <PanelCreatePlaylist
-                    isPanelOpen={isPanelPlaylistOpen}
-                    togglePanelPlaylist={togglePanelPlaylist}
-                    groupId={group.id}
-                />
-                <PanelAddVideo
-                    isPanelOpen={isPanelAddVideoOpen}
-                    togglePanelAddVideo={togglePanelAddVideo}
-                    groupId={group.id}
-                />
+                <Suspense fallback={<div>Loading...</div>}>
+                    {isPanelViewWaitingUserListOpen && (
+                        <LazyPanelViewWaitingUserList
+                            isPanelOpen={isPanelViewWaitingUserListOpen}
+                            togglePanelViewWaitingUserList={
+                                togglePanelViewWaitingUserList
+                            }
+                            groupId={group.id}
+                        />
+                    )}
+                    {isPanelPlaylistOpen && (
+                        <LazyPanelCreatePlaylist
+                            isPanelOpen={isPanelPlaylistOpen}
+                            togglePanelPlaylist={togglePanelPlaylist}
+                            groupId={group.id}
+                        />
+                    )}
+                    {isPanelAddVideoOpen && (
+                        <LazyPanelAddVideo
+                            isPanelOpen={isPanelAddVideoOpen}
+                            togglePanelAddVideo={togglePanelAddVideo}
+                            groupId={group.id}
+                        />
+                    )}
+                </Suspense>
             </>
             <PlaylistItem groupId={group.id} />
             <VideoItems groupId={group.id} />

@@ -17,7 +17,8 @@ class GroupStatus(models.TextChoices):
 
 class Group(models.Model):
     title = models.CharField(max_length=100)
-    members = models.ManyToManyField(User, blank=True)
+    members = models.ManyToManyField(User, related_name="member_of_groups")
+    waiting = models.ManyToManyField(User, related_name="waiting_for_groups")
     creation_date = models.DateTimeField(auto_now_add=True)
     description = models.TextField()
     status = models.CharField(

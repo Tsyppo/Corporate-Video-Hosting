@@ -41,6 +41,62 @@ export const uploadGroup = (formData: FormData) => {
     }
 }
 
+export const applyToGroup = (groupId: number, waiting: number[]) => {
+    return async (dispatch: Dispatch<GroupAction>) => {
+        try {
+            // Отправляем PATCH-запрос для обновления массива waiting
+            const response = await axios.patch<Group>(
+                `http://127.0.0.1:8000/api/groups/${groupId}/update-members-waiting/`,
+                { waiting },
+            )
+            dispatch({
+                type: GroupActionTypes.APPLY_TO_GROUP,
+                payload: response.data,
+            })
+            console.log('Applied to group successfully')
+        } catch (error) {
+            console.error('Error applying to group:', error)
+        }
+    }
+}
+
+export const addToMembers = (groupId: number, userId: number) => {
+    return async (dispatch: Dispatch<GroupAction>) => {
+        try {
+            // Отправляем PATCH-запрос для добавления пользователя в список members
+            const response = await axios.patch<Group>(
+                `http://127.0.0.1:8000/api/groups/${groupId}/add-to-members/`,
+                { userId },
+            )
+            dispatch({
+                type: GroupActionTypes.ADD_TO_MEMBERS,
+                payload: response.data,
+            })
+            console.log('Added to members successfully')
+        } catch (error) {
+            console.error('Error adding to members:', error)
+        }
+    }
+}
+
+export const cancelApplication = (groupId: number, userId: number) => {
+    return async (dispatch: Dispatch<GroupAction>) => {
+        try {
+            // Отправляем PATCH-запрос для удаления пользователя из списка ожидающих
+            const response = await axios.patch<Group>(
+                `http://127.0.0.1:8000/api/groups/${groupId}/cancel-application/${userId}/`,
+            )
+            dispatch({
+                type: GroupActionTypes.CANCEL_APPLICATION,
+                payload: response.data,
+            })
+            console.log('Cancelled application successfully')
+        } catch (error) {
+            console.error('Error cancelling application:', error)
+        }
+    }
+}
+
 export const updateGroup = (
     groupId: number,
     updatedGroupData: Partial<Group>,

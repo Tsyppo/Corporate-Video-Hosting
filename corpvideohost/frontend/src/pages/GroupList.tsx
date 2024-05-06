@@ -57,9 +57,10 @@ const Participants = styled.h4`
 
 const Button = styled.button`
     height: 40px;
+    width: 170px;
     font-size: medium;
     margin-left: auto;
-    margin-right: 450px;
+    margin-right: auto;
     margin-top: 20px;
     background-color: ${(props) => props.theme.headerBackground};
     color: ${(props) => props.theme.headerText};
@@ -71,6 +72,31 @@ const Button = styled.button`
     &:hover {
         background-color: ${(props) => props.theme.buttonBackground};
     }
+`
+
+const ButtonForWait = styled(Button)`
+    background-color: ${(props) => props.theme.playlistobject};
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    &:hover {
+        background-color: black;
+    }
+`
+
+const PForCreator = styled.p`
+    height: 20px;
+    width: 170px;
+    font-size: medium;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    background-color: ${(props) => props.theme.playlistobject};
+    color: ${(props) => props.theme.headerText};
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    padding-top: 12px;
+    padding-bottom: 12px;
 `
 
 const ButtonAddGroup = styled(Button)`
@@ -97,6 +123,13 @@ const GroupList: React.FC = () => {
         status: 'public', // Устанавливаем начальное значение статуса
     })
     useAutoLogout()
+    const { applyToGroup, cancelApplication, fetchListUser } = useActions()
+
+    useEffect(() => {
+        fetchListUser()
+    }, [])
+
+    const { users } = useTypedSelector((state) => state.user)
 
     const dispatch = useDispatch()
     const { groups } = useTypedSelector((state) => state.group)
@@ -129,12 +162,60 @@ const GroupList: React.FC = () => {
     const togglePanel = () => {
         setIsPanelOpen(!isPanelOpen)
     }
+
     const getCreatorName = (creatorId: number) => {
-        if (userObjectFromStorage && userObjectFromStorage.id === creatorId) {
-            return userObjectFromStorage.username
+        // Ищем пользователя с указанным ID в списке пользователей
+        const creator = users?.find((user) => user.id === creatorId)
+        if (creator) {
+            return creator.username // Возвращаем имя пользователя, если найден
         }
         return 'Неизвестный пользователь'
     }
+    // Функция для обработки подачи заявки на вступление в группу
+    const handleApplyToGroup = (groupId: number) => {
+        const userId = userObjectFromStorage?.id // Получаем ID пользователя из localStorage
+        if (userId) {
+            // Передаем ID пользователя и ID группы в действие applyToGroup
+            applyToGroup(groupId, [userId])
+            console.log(`Applied to group ${groupId}`)
+        } else {
+            console.error('User ID not found in localStorage')
+        }
+    }
+
+    const handleCancelToGroup = (groupId: number) => {
+        const userId = userObjectFromStorage?.id // Получаем ID пользователя из localStorage
+        if (userId) {
+            // Передаем ID пользователя и ID группы в действие applyToGroup
+            cancelApplication(groupId, userId)
+            console.log(`Canceled to group ${groupId}`)
+        } else {
+            console.error('User ID not found in localStorage')
+        }
+    }
+
+    const renderApplyButton = (group: Group) => {
+        // Проверяем, если пользователь уже в группе или в списке ожидающих, не показываем кнопку
+        if (group.creator == userObjectFromStorage?.id) {
+            return <PForCreator>Вы создатель</PForCreator>
+        }
+        if (group.waiting.includes(userObjectFromStorage?.id)) {
+            return (
+                <ButtonForWait onClick={() => handleCancelToGroup(group.id)}>
+                    Отменить заявку
+                </ButtonForWait>
+            )
+        }
+        if (group.members.includes(userObjectFromStorage?.id)) {
+            return <PForCreator>Вы в группе</PForCreator>
+        }
+        return (
+            <Button onClick={() => handleApplyToGroup(group.id)}>
+                Подать заявку
+            </Button>
+        )
+    }
+
     return (
         <Layout>
             <TokenChecker targetRoute="/groups"></TokenChecker>
@@ -157,15 +238,28 @@ const GroupList: React.FC = () => {
                                 <Avatar src={AvatarIcon} />
                                 <GroupInfo>
                                     <GroupName>
-                                        <StyledLink to={`/group/${group.id}`}>
-                                            {group.title}
-                                        </StyledLink>
+                                        {group.members.includes(
+                                            userObjectFromStorage.id,
+                                        ) ? (
+                                            <StyledLink
+                                                to={`/group/${group.id}`}
+                                            >
+                                                {group.title}
+                                            </StyledLink>
+                                        ) : group.creator ===
+                                          userObjectFromStorage.id ? (
+                                            <StyledLink
+                                                to={`/group/${group.id}`}
+                                            >
+                                                {group.title}
+                                            </StyledLink>
+                                        ) : (
+                                            <span>{group.title}</span>
+                                        )}
                                     </GroupName>
                                     <GroupCreator>
-                                        <StyledLink to={`/group/${group.id}`}>
-                                            Создатель:{' '}
-                                            {getCreatorName(group.creator)}
-                                        </StyledLink>
+                                        Создатель:{' '}
+                                        {getCreatorName(group.creator)}
                                     </GroupCreator>
                                     <Participants>
                                         {group.members ? (
@@ -178,7 +272,7 @@ const GroupList: React.FC = () => {
                                         )}
                                     </Participants>
                                 </GroupInfo>
-                                <Button>Подать заявку</Button>
+                                {renderApplyButton(group)}
                             </GroupContainer>
                         ))}
                     </div>

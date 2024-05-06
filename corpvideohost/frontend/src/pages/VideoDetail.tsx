@@ -148,12 +148,18 @@ const Video: React.FC = () => {
         addComment(formData)
         setCommentText('')
     }
-
+    const scaleFactor = 0.9
     return (
         <Layout>
             <TokenChecker targetRoute={`/video/${video.id}`}></TokenChecker>
             <Container>
-                <VideoPlayer video={video}></VideoPlayer>
+                <h1></h1>
+                <VideoPlayer
+                    video={video}
+                    controls={true}
+                    width={1280 * scaleFactor}
+                    height={720 * scaleFactor}
+                ></VideoPlayer>
                 <ContainerVideo>
                     <VideoTitle>{video.title}</VideoTitle>
                     <ButtonAnaliz>Аналитика</ButtonAnaliz>

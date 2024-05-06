@@ -13,7 +13,6 @@ const VideoContainer = styled.div`
     display: flex;
     gap: 10px;
     align-items: flex-start;
-    /* Выравнивание элементов по горизонтали */
 `
 
 const VideoPlace = styled.video`
@@ -31,9 +30,9 @@ const VideoInfoContainer = styled.div`
 const VideoTitle = styled.h2`
     margin: 0;
     padding: 10px;
-    cursor: pointer; // Добавляем стили для указания, что элемент является нажимаемым
+    cursor: pointer;
     &:hover {
-        text-decoration: underline; // Добавляем подчеркивание при наведении мыши
+        text-decoration: underline;
     }
     color: ${(props) => props.theme.text};
 `
@@ -88,6 +87,7 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
     const videos = useTypedSelector((state) => state.video.videos)
     const playlists = useTypedSelector((state) => state.playlist.playlists)
     const groups = useTypedSelector((state) => state.group.groups)
+    const users = useTypedSelector((state) => state.user.users)
     const user = localStorage.getItem('user')
     let userObjectFromStorage: any | null = null
     const location = useLocation()
@@ -99,11 +99,7 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
     }
 
     useEffect(() => {
-        if (userObjectFromStorage && userObjectFromStorage.id) {
-            fetchVideoList()
-        } else {
-            console.error('User ID is null')
-        }
+        fetchVideoList()
     }, [])
 
     const handleDelete = (videoId: number) => {
@@ -161,11 +157,14 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
 
     // Функция для получения имени пользователя по его идентификатору
     const getCreatorName = (creatorId: number) => {
-        if (userObjectFromStorage && userObjectFromStorage.id === creatorId) {
-            return userObjectFromStorage.username
+        // Ищем пользователя с указанным ID в списке пользователей
+        const creator = users?.find((user) => user.id === creatorId)
+        if (creator) {
+            return creator.username // Возвращаем имя пользователя, если найден
         }
         return 'Неизвестный пользователь'
     }
+    const scaleFactor = 0.7
 
     return (
         <div>
@@ -173,7 +172,12 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
                 filtredVideos.map((video: Video) => (
                     <div key={video.id}>
                         <VideoContainer>
-                            <VideoPlayer video={video}></VideoPlayer>
+                            <VideoPlayer
+                                video={video}
+                                controls={false}
+                                width={640 * scaleFactor}
+                                height={360 * scaleFactor}
+                            ></VideoPlayer>
                             <VideoInfoContainer>
                                 <VideoTitle>
                                     <StyledLink to={`/video/${video.id}`}>
@@ -183,9 +187,6 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
                                 <VideoCreator>
                                     Создатель: {getCreatorName(video.creator)}
                                 </VideoCreator>
-                                <VideoDescription>
-                                    {video.description}
-                                </VideoDescription>
 
                                 <div>
                                     {/* Показываем кнопки "Удалить" и "Редактировать" только на странице /video */}
