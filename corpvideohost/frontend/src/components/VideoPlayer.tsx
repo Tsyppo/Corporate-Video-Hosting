@@ -118,25 +118,25 @@ const VideoPlayerComponent: React.FC<VideoPlayerProps> = ({
 
                 const player = videojs(videoNode.current, options)
 
-                // Обработчик события воспроизведения
-                player.on('play', () => {
-                    console.log('Просмотр начат')
-                })
+                // // Обработчик события воспроизведения
+                // player.on('play', () => {
+                //     console.log('Просмотр начат')
+                // })
 
-                // Обработчик события паузы
-                player.on('pause', () => {
-                    console.log('Просмотр приостановлен')
-                })
+                // // Обработчик события паузы
+                // player.on('pause', () => {
+                //     console.log('Просмотр приостановлен')
+                // })
 
-                // Обработчик события завершения воспроизведения
-                player.on('ended', () => {
-                    console.log('Просмотр завершён')
-                })
+                // // Обработчик события завершения воспроизведения
+                // player.on('ended', () => {
+                //     console.log('Просмотр завершён')
+                // })
 
-                // Обработчик события изменения времени воспроизведения
-                player.on('timeupdate', () => {
-                    console.log('Изменение времени воспроизведения')
-                })
+                // // Обработчик события изменения времени воспроизведения
+                // player.on('timeupdate', () => {
+                //     console.log('Изменение времени воспроизведения')
+                // })
 
                 return () => {
                     if (player) {
@@ -147,6 +147,62 @@ const VideoPlayerComponent: React.FC<VideoPlayerProps> = ({
         }, 1000) // Задержка в 1 секунду
 
         return () => clearTimeout(timer)
+    }, [])
+
+    useEffect(() => {
+        const videoElement = videoNode.current
+        let startTime: number | null = null // Время начала просмотра
+        let totalWatchedTime = 0 // Общее время просмотра
+        let time = 0
+
+        if (videoElement) {
+            const handlePlay = () => {
+                startTime = videoElement.currentTime
+            }
+
+            const handlePause = () => {
+                if (startTime !== null) {
+                    time += videoElement.currentTime - startTime
+                    console.log('Общее время просмотра всего:', time)
+                }
+            }
+
+            const handleEnded = () => {
+                if (startTime !== null && time < videoElement.duration - 3) {
+                    console.log(
+                        'Просмотр завершен. Общее время просмотра:',
+                        time,
+                    )
+                } else {
+                    console.log('Ролик просмотрен полностью')
+                }
+            }
+
+            const handleTimeUpdate = () => {
+                if (startTime !== null && !videoElement.paused) {
+                    totalWatchedTime = videoElement.currentTime - startTime
+                    console.log('Общее время просмотра:', totalWatchedTime)
+                }
+            }
+
+            const handleSeeked = () => {
+                startTime = videoElement.currentTime
+            }
+
+            videoElement.addEventListener('play', handlePlay)
+            videoElement.addEventListener('pause', handlePause)
+            videoElement.addEventListener('ended', handleEnded)
+            videoElement.addEventListener('timeupdate', handleTimeUpdate)
+            videoElement.addEventListener('seeked', handleSeeked)
+
+            return () => {
+                videoElement.removeEventListener('play', handlePlay)
+                videoElement.removeEventListener('pause', handlePause)
+                videoElement.removeEventListener('ended', handleEnded)
+                videoElement.removeEventListener('timeupdate', handleTimeUpdate)
+                videoElement.removeEventListener('seeked', handleSeeked)
+            }
+        }
     }, [])
 
     return (

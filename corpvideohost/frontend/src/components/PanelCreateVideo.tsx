@@ -160,19 +160,13 @@ const PanelCreateVideo: React.FC<{
 }> = ({ isPanelOpen, togglePanel }) => {
     useAutoLogout()
 
-    const { fetchVideoListUser, deleteVideo } = useActions()
+    const { fetchVideoListUser } = useActions()
     const videos = useTypedSelector((state) => state.video.videos)
-    const user = localStorage.getItem('user')
-    let userObjectFromStorage: any | null = null
-
-    if (user !== null) {
-        userObjectFromStorage = JSON.parse(user)
-    } else {
-        console.log('Объект пользователя отсутствует в localStorage')
-    }
+    const userIdString = localStorage.getItem('user')
+    const userId = userIdString ? parseInt(userIdString) : null
 
     useEffect(() => {
-        fetchVideoListUser(userObjectFromStorage.id)
+        fetchVideoListUser(userId!)
     }, [])
 
     const [title, setTitle] = useState('')
@@ -204,7 +198,7 @@ const PanelCreateVideo: React.FC<{
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
-        if (!title || !description || !video) {
+        if (!title || !description || !video || !userId) {
             console.error('Please fill in all fields')
             return
         }
@@ -214,11 +208,11 @@ const PanelCreateVideo: React.FC<{
         formData.append('description', description)
         formData.append('status', status)
         formData.append('video', video)
-        if (user) {
-            formData.append('creator', userObjectFromStorage.id)
+        if (userIdString) {
+            formData.append('creator', userIdString)
         }
 
-        uploadVideo(formData, userObjectFromStorage.id)
+        uploadVideo(formData, userId)
     }
 
     if (!isPanelOpen) return null

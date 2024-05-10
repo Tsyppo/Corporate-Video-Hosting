@@ -74,7 +74,7 @@ const StyledList = styled.ul`
 
 const ListItem = styled.li`
     display: flex;
-    width: 210%;
+    width: 500px;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 20px;
@@ -134,30 +134,24 @@ const PanelViewWaitingUserList: React.FC<{
     const { groups } = useTypedSelector((state) => state.group)
     const videos = useTypedSelector((state) => state.video.videos)
 
-    const user = localStorage.getItem('user')
-    let userObjectFromStorage: any | null = null
-    if (user !== null) {
-        userObjectFromStorage = JSON.parse(user)
-    } else {
-        console.log('Объект пользователя отсутствует в localStorage')
-    }
+    const userIdString = localStorage.getItem('user')
+    const userId = userIdString ? parseInt(userIdString) : null
 
     useEffect(() => {
         fetchListUser()
     }, [])
 
     useEffect(() => {
-        fetchVideoListUser(userObjectFromStorage.id)
+        fetchVideoListUser(userId!)
     }, [])
 
     const waitingUsers =
-        groups?.find((group) => group.id === groupId)?.waiting || [] // Получаем список ожидающих пользователей для данной группы
+        groups?.find((group) => group.id === groupId)?.waiting || []
 
     const getCreatorName = (creatorId: number) => {
-        // Ищем пользователя с указанным ID в списке пользователей
         const creator = users?.find((user) => user.id === creatorId)
         if (creator) {
-            return creator.username // Возвращаем имя пользователя, если найден
+            return creator.username
         }
         return 'Неизвестный пользователь'
     }
@@ -165,15 +159,9 @@ const PanelViewWaitingUserList: React.FC<{
 
     const handleAccept = async (userId: number) => {
         try {
-            // Устанавливаем флаг actionInProgress в true, чтобы предотвратить многократные запросы
             setActionInProgress(true)
-
-            // Вызываем действие addToMembers
             await addToMembers(groupId, userId)
-
             await cancelApplication(groupId, userId)
-
-            // Устанавливаем флаг actionInProgress в false после завершения запроса
             setActionInProgress(false)
         } catch (error) {
             console.error('Error accepting application:', error)
@@ -183,19 +171,11 @@ const PanelViewWaitingUserList: React.FC<{
 
     const handleReject = async (userId: number) => {
         try {
-            // Устанавливаем флаг actionInProgress в true, чтобы предотвратить многократные запросы
             setActionInProgress(true)
-
-            // Вызываем действие cancelApplication
             await cancelApplication(groupId, userId)
-
-            // Устанавливаем флаг actionInProgress в false после завершения запроса
             setActionInProgress(false)
         } catch (error) {
-            // Обрабатываем ошибку, если есть
             console.error('Error rejecting application:', error)
-
-            // Устанавливаем флаг actionInProgress в false в случае ошибки
             setActionInProgress(false)
         }
     }

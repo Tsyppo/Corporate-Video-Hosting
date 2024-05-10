@@ -150,14 +150,8 @@ const PanelCreateGroup: React.FC<{
     isPanelOpen: boolean
     togglePanel: () => void
 }> = ({ isPanelOpen, togglePanel }) => {
-    const user = localStorage.getItem('user')
-    let userObjectFromStorage: any | null = null
-
-    if (user !== null) {
-        userObjectFromStorage = JSON.parse(user)
-    } else {
-        console.log('Объект пользователя отсутствует в localStorage')
-    }
+    const userIdString = localStorage.getItem('user')
+    const userId = userIdString ? parseInt(userIdString) : null
 
     const [title, setTitle] = useState('')
     const [description, setDescription] = useState('')
@@ -181,7 +175,7 @@ const PanelCreateGroup: React.FC<{
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
-        if (!title || !description || !status) {
+        if (!title || !description || !status || !userIdString) {
             console.error('Please fill in all fields')
             return
         }
@@ -190,8 +184,8 @@ const PanelCreateGroup: React.FC<{
         formData.append('title', title)
         formData.append('description', description)
         formData.append('status', status)
-        if (user) {
-            formData.append('creator', userObjectFromStorage.id)
+        if (userId) {
+            formData.append('creator', userIdString)
         }
 
         uploadGroup(formData)

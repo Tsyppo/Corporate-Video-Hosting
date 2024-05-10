@@ -257,7 +257,7 @@ def user_profile_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["GET", "PUT", "DELETE"])
+@api_view(["GET", "PUT", "PATCH", "DELETE"])
 def user_profile_detail(request, pk):
     try:
         user_profile = UserProfile.objects.get(pk=pk)
@@ -268,6 +268,28 @@ def user_profile_detail(request, pk):
         serializer = UserProfileSerializer(user_profile)
         return Response(serializer.data)
 
+    elif request.method == "PATCH":  # Изменили метод на PATCH
+        # Получаем данные из запроса
+        video_id = request.data.get(
+            "videoId"
+        )  # Предполагаем, что передается videoId в теле запроса
+        if video_id:
+            # Проверяем, есть ли video_id уже в списке избранных видео пользователя
+            if user_profile.favorites.filter(id=video_id).exists():
+                user_profile.favorites.remove(
+                    video_id
+                )  # Удаляем video_id из списка избранных
+                user_profile.save()
+                serializer = UserProfileSerializer(user_profile)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                # Если video_id не было в списке избранных, то добавляем его
+                user_profile.favorites.add(video_id)
+                user_profile.save()
+                serializer = UserProfileSerializer(user_profile)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response("VideoId not provided", status=status.HTTP_400_BAD_REQUEST)
     elif request.method == "PUT":
         serializer = UserProfileSerializer(user_profile, data=request.data)
         if serializer.is_valid():

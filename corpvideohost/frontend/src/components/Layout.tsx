@@ -1,4 +1,10 @@
-import React, { ReactNode, useCallback, useMemo, useState } from 'react'
+import React, {
+    ReactNode,
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+} from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import styled, { createGlobalStyle, ThemeProvider } from 'styled-components'
 import SiteIcon from '../assets/images/Panda.svg'
@@ -256,6 +262,14 @@ const Layout: React.FC<LayoutProps> = React.memo(({ children }) => {
     const navigate = useNavigate()
     const [searchTerm, setSearchTermLocal] = useState('')
     const [showSidebar, toggleSidebar] = useSidebarToggle()
+    const userIdString = localStorage.getItem('user')
+    const userId = userIdString ? parseInt(userIdString) : null
+    const users = useTypedSelector((state) => state.user.users)
+    const { fetchListUser } = useActions()
+
+    useEffect(() => {
+        fetchListUser()
+    }, [])
 
     const { logoutUser } = useActions()
     const handleSearchChange = useCallback(
@@ -288,16 +302,19 @@ const Layout: React.FC<LayoutProps> = React.memo(({ children }) => {
         logoutUser()
     }
 
-    const user = localStorage.getItem('user')
-    let userObjectFromStorage: any | null = null
+    let loggedInUser = null
+
+    if (userId && users) {
+        loggedInUser = users.find((user) => user.id === userId)
+    }
+
     let username: any | null = null
     let role: any | null = null
-    if (user !== null) {
-        userObjectFromStorage = JSON.parse(user)
-        username = userObjectFromStorage.username
-        role = userObjectFromStorage.role
+    if (userId !== null) {
+        username = loggedInUser?.username
+        role = loggedInUser?.role
     } else {
-        console.log('Объект пользователя отсутствует в localStorage')
+        console.log('ID пользователя отсутствует в localStorage')
     }
 
     const [isOpen, setIsOpen] = useState(false)

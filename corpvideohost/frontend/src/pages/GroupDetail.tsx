@@ -10,6 +10,8 @@ import { useTypedSelector } from '../hooks/useTypedSelector'
 import useAutoLogout from '../hooks/useAutoLogout'
 import { fetchGroupList } from '../store/actions/groupActions'
 import { useDispatch } from 'react-redux'
+import { useActions } from '../hooks/useAction'
+
 const LazyPanelViewWaitingUserList = React.lazy(
     () => import('../components/PanelViewWaitingUserList'),
 )
@@ -46,17 +48,21 @@ const MainTitle = styled.h1`
 const Group: React.FC = () => {
     useAutoLogout()
 
-    const userString = localStorage.getItem('user')
+    const userIdString = localStorage.getItem('user')
+    const userId = userIdString ? parseInt(userIdString) : null
+    const users = useTypedSelector((state) => state.user.users)
+    const { fetchListUser } = useActions()
 
-    let userObjectFromStorage
-
-    if (userString !== null) {
-        userObjectFromStorage = JSON.parse(userString)
-    } else {
-        console.log('Объект пользователя отсутствует в localStorage')
+    useEffect(() => {
+        fetchListUser()
+    }, [])
+    let loggedInUser = null
+    if (userId && users) {
+        loggedInUser = users.find((user) => user.id === userId)
     }
 
-    let role = userObjectFromStorage?.role
+    let role = loggedInUser?.role
+
     const [isPanelAddVideoOpen, setIsPanelAddVideoOpen] = useState(false)
     const [isPanelPlaylistOpen, setIsPanelPlaylistOpen] = useState(false)
     const [isPanelViewWaitingUserListOpen, setIsPanelViewWaitingUserListOpen] =

@@ -12,6 +12,7 @@ import { fetchGroupList, uploadGroup } from '../store/actions/groupActions'
 import { useDispatch } from 'react-redux'
 import { useActions } from '../hooks/useAction'
 import PanelCreateGroup from '../components/PanelCreateGroup'
+import { User } from '../types/user'
 
 const Container = styled.div`
     margin-left: 300px;
@@ -123,39 +124,30 @@ const GroupList: React.FC = () => {
         status: 'public', // Устанавливаем начальное значение статуса
     })
     useAutoLogout()
-    const { applyToGroup, cancelApplication, fetchListUser } = useActions()
+    const { users } = useTypedSelector((state) => state.user)
+    const { groups } = useTypedSelector((state) => state.group)
+
+    const { applyToGroup, cancelApplication, fetchListUser, fetchGroupList } =
+        useActions()
 
     useEffect(() => {
         fetchListUser()
+        fetchGroupList()
     }, [])
 
-    const { users } = useTypedSelector((state) => state.user)
+    const userIdString = localStorage.getItem('user')
+    const userId = userIdString ? parseInt(userIdString) : null
 
-    const dispatch = useDispatch()
-    const { groups } = useTypedSelector((state) => state.group)
+    let loggedInUser: User | null = null
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                await fetchGroupList()(dispatch)
-            } catch (error) {
-                console.error('Error fetching group list:', error)
-            }
+    if (userId && users) {
+        const foundUser = users.find((user) => user.id === userId)
+        if (foundUser) {
+            loggedInUser = foundUser
         }
-
-        fetchData()
-    }, [dispatch])
-
-    const user = localStorage.getItem('user')
-    let userObjectFromStorage: any | null = null
-
-    if (user !== null) {
-        userObjectFromStorage = JSON.parse(user)
-    } else {
-        console.log('Объект пользователя отсутствует в localStorage')
     }
 
-    let role = userObjectFromStorage?.role
+    let role = loggedInUser?.role
 
     const [isPanelOpen, setIsPanelOpen] = useState(false)
 
@@ -173,7 +165,7 @@ const GroupList: React.FC = () => {
     }
     // Функция для обработки подачи заявки на вступление в группу
     const handleApplyToGroup = (groupId: number) => {
-        const userId = userObjectFromStorage?.id // Получаем ID пользователя из localStorage
+        const userId = loggedInUser?.id // Получаем ID пользователя из localStorage
         if (userId) {
             // Передаем ID пользователя и ID группы в действие applyToGroup
             applyToGroup(groupId, [userId])
@@ -184,7 +176,7 @@ const GroupList: React.FC = () => {
     }
 
     const handleCancelToGroup = (groupId: number) => {
-        const userId = userObjectFromStorage?.id // Получаем ID пользователя из localStorage
+        const userId = loggedInUser?.id // Получаем ID пользователя из localStorage
         if (userId) {
             // Передаем ID пользователя и ID группы в действие applyToGroup
             cancelApplication(groupId, userId)
@@ -196,17 +188,17 @@ const GroupList: React.FC = () => {
 
     const renderApplyButton = (group: Group) => {
         // Проверяем, если пользователь уже в группе или в списке ожидающих, не показываем кнопку
-        if (group.creator == userObjectFromStorage?.id) {
+        if (group.creator == loggedInUser?.id) {
             return <PForCreator>Вы создатель</PForCreator>
         }
-        if (group.waiting.includes(userObjectFromStorage?.id)) {
+        if (group.waiting.includes(loggedInUser?.id!)) {
             return (
                 <ButtonForWait onClick={() => handleCancelToGroup(group.id)}>
                     Отменить заявку
                 </ButtonForWait>
             )
         }
-        if (group.members.includes(userObjectFromStorage?.id)) {
+        if (group.members.includes(loggedInUser?.id!)) {
             return <PForCreator>Вы в группе</PForCreator>
         }
         return (
@@ -239,7 +231,7 @@ const GroupList: React.FC = () => {
                                 <GroupInfo>
                                     <GroupName>
                                         {group.members.includes(
-                                            userObjectFromStorage.id,
+                                            loggedInUser?.id!,
                                         ) ? (
                                             <StyledLink
                                                 to={`/group/${group.id}`}
@@ -247,7 +239,7 @@ const GroupList: React.FC = () => {
                                                 {group.title}
                                             </StyledLink>
                                         ) : group.creator ===
-                                          userObjectFromStorage.id ? (
+                                          loggedInUser?.id ? (
                                             <StyledLink
                                                 to={`/group/${group.id}`}
                                             >

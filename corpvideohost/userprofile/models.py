@@ -81,6 +81,3 @@ class UserProfile(models.Model):
     groups = models.ManyToManyField(Group)
     playlists = models.ManyToManyField(Playlist)
     search_history = models.ManyToManyField(SearchHistory)
-    created_groups = models.ForeignKey(
-        Group, on_delete=models.CASCADE, related_name="group_creator", null=True
-    )

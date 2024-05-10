@@ -79,27 +79,26 @@ const StyledLink = styled(Link)`
 interface VideoItemProps {
     playlistId?: number
     groupId?: number
+    isfavorite?: boolean
 }
 
 const VideoItems: React.FC<VideoItemProps> = (props) => {
     const { playlistId, groupId } = props
-    const { fetchVideoList, deleteVideo } = useActions()
+    const { fetchVideoList, deleteVideo, fetchUserProfile } = useActions()
     const videos = useTypedSelector((state) => state.video.videos)
     const playlists = useTypedSelector((state) => state.playlist.playlists)
     const groups = useTypedSelector((state) => state.group.groups)
     const users = useTypedSelector((state) => state.user.users)
-    const user = localStorage.getItem('user')
-    let userObjectFromStorage: any | null = null
+    const userProfile = useTypedSelector(
+        (state) => state.userprofiles.userProfile,
+    )
+    const userIdString = localStorage.getItem('user')
+    const userId = userIdString ? parseInt(userIdString) : null
     const location = useLocation()
-
-    if (user !== null) {
-        userObjectFromStorage = JSON.parse(user)
-    } else {
-        console.log('Объект пользователя отсутствует в localStorage')
-    }
 
     useEffect(() => {
         fetchVideoList()
+        fetchUserProfile(userId!)
     }, [])
 
     const handleDelete = (videoId: number) => {
@@ -114,10 +113,15 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
     let filtredVideos: Video[] = []
     const actualGroupId = groupId
     const actualPlaylistId = playlistId
+    const isfavorite = props.isfavorite
 
-    if (actualPlaylistId != null || actualGroupId != null) {
-        if (!playlists && !groups) {
-            return <div>Playlists and Groups not found</div>
+    if (
+        actualPlaylistId != null ||
+        actualGroupId != null ||
+        isfavorite != null
+    ) {
+        if (!playlists && !groups && !isfavorite) {
+            return <div>Плейлисты и группы не найдены</div>
         }
 
         if (actualPlaylistId != null && playlists) {
@@ -150,6 +154,14 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
             } else {
                 console.log('Group not found')
             }
+        }
+        if (isfavorite) {
+            if (!userProfile) {
+                return <div>Профиль пользователя не загружен</div>
+            }
+            filtredVideos = videos.filter((video) =>
+                userProfile.favorites.includes(video.id),
+            )
         }
     } else {
         filtredVideos = videos

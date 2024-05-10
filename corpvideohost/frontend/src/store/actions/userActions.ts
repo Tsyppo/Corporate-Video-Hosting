@@ -40,9 +40,9 @@ export const loginUser = (username: string, password: string) => {
                 localStorage.setItem('token', response.data.refresh)
                 dispatch({
                     type: UserActionTypes.FETCH_USER_SUCCESS,
-                    payload: response.data.user,
+                    payload: response.data.id,
                 })
-                localStorage.setItem('user', JSON.stringify(response.data.user))
+                localStorage.setItem('user', JSON.stringify(response.data.id))
                 window.location.href = '/main'
             } else {
                 dispatch({

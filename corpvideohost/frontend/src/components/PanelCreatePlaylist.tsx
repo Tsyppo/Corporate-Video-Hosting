@@ -158,17 +158,11 @@ const PanelCreatePlaylist: React.FC<{
     const [status, setStatus] = useState('unlisted')
     const [selectedVideos, setSelectedVideos] = useState<Video[]>([])
 
-    const user = localStorage.getItem('user')
-    let userObjectFromStorage: any | null = null
-
-    if (user !== null) {
-        userObjectFromStorage = JSON.parse(user)
-    } else {
-        console.log('Объект пользователя отсутствует в localStorage')
-    }
+    const userIdString = localStorage.getItem('user')
+    const userId = userIdString ? parseInt(userIdString) : null
 
     useEffect(() => {
-        fetchVideoListUser(userObjectFromStorage.id)
+        fetchVideoListUser(userId!)
     }, [])
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -7,8 +7,8 @@ export interface User {
     patronymic: string
     phone_number: string
     avatar: string | null
-    role: UserRole
-    status: UserStatus
+    role: string
+    status: string
     registration_date: Date
 }
 
@@ -17,16 +17,6 @@ export interface UserState {
     user: User | null
     loading: boolean
     error: string | null
-}
-
-export enum UserRole {
-    USER = 'user',
-    ADMIN = 'admin',
-}
-
-export enum UserStatus {
-    ACTIVE = 'active',
-    INACTIVE = 'inactive',
 }
 
 export enum UserActionTypes {
@@ -52,7 +42,7 @@ export interface UserFailureAction {
     payload: string
 }
 
-export interface FETCH_USER_LIST_SUCCESS {
+export interface FetchUserListSuccess {
     type: UserActionTypes.FETCH_USER_LIST_SUCCESS
     payload: User[]
 }
@@ -65,5 +55,5 @@ export type UserAction =
     | UserRequestAction
     | UserSuccessAction
     | UserFailureAction
-    | FETCH_USER_LIST_SUCCESS
+    | FetchUserListSuccess
     | LogoutUserAction

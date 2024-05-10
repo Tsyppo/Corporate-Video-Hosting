@@ -31,17 +31,11 @@ const VideoList: React.FC = () => {
     const { fetchVideoListUser, deleteVideo } = useActions()
     useAutoLogout()
 
-    const user = localStorage.getItem('user')
-    let userObjectFromStorage: any | null = null
-
-    if (user !== null) {
-        userObjectFromStorage = JSON.parse(user)
-    } else {
-        console.log('Объект пользователя отсутствует в localStorage')
-    }
+    const userIdString = localStorage.getItem('user')
+    const userId = userIdString ? parseInt(userIdString) : null
 
     useEffect(() => {
-        fetchVideoListUser(userObjectFromStorage.id)
+        fetchVideoListUser(userId!)
     }, [])
 
     const togglePanel = () => {

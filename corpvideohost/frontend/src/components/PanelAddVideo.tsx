@@ -139,10 +139,8 @@ const PanelAddVideo: React.FC<{
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
-        // Создаем массив id выбранных видео
         const selectedVideoIds = selectedVideos.map((video) => video.id)
 
-        // Обновляем группу, добавляя выбранные видео
         updateGroup(groupId, { videos: selectedVideoIds } as Partial<Group>)
     }
 

@@ -62,12 +62,15 @@ const Button = styled.button`
     cursor: pointer;
 `
 
-const ButtonAddFav = styled(Button)`
-    margin-left: 20px;
+const ButtonAnaliz = styled(Button)`
+    margin-left: auto;
+    margin-right: 10px;
 `
 
-const ButtonAnaliz = styled(ButtonAddFav)`
-    margin-left: 710px;
+const ButtonAddFav = styled(ButtonAnaliz)<{ isFavorited: boolean }>`
+    margin-left: 0;
+    background-color: ${(props) =>
+        props.isFavorited ? '#858585' : props.theme.headerBackground};
 `
 
 const FlexContainer = styled.form`
@@ -80,54 +83,75 @@ const ContainerVideo = styled.div`
     display: flex;
     margin-top: 20px;
     align-items: center;
+    width: 1160px;
 `
 
 const Video: React.FC = () => {
     useAutoLogout()
-
+    const userIdString = localStorage.getItem('user')
+    const userId = userIdString ? parseInt(userIdString) : null
     const { id } = useParams<{ id?: string }>()
+    const parsedId = id ? parseInt(id, 10) : undefined
     const videos = useTypedSelector((state) => state.video.videos)
-    const [commentText, setCommentText] = useState('')
-    const { addComment, fetchComments, fetchVideoListUser } = useActions()
     const comments = useTypedSelector((state) => state.comment.comments)
+    const userProfile = useTypedSelector(
+        (state) => state.userprofiles.userProfile,
+    )
+    const [commentText, setCommentText] = useState('')
+    const [isFavorited, setIsFavorited] = useState(false)
+
+    const {
+        addComment,
+        fetchComments,
+        fetchUserProfile,
+        fetchVideoList,
+        updateUserProfile,
+    } = useActions()
 
     if (!id) {
         return <div>Video ID is not provided</div>
     }
 
-    const userString = localStorage.getItem('user')
-    const userObjectFromStorage = userString ? JSON.parse(userString) : null
-
     useEffect(() => {
-        if (id) {
-            fetchComments(parseInt(id))
+        fetchVideoList()
+        if (parsedId) {
+            fetchComments(parsedId)
         } else {
             console.error('fetchComments ID is null')
         }
+        fetchUserProfile(userId!)
     }, [])
 
     useEffect(() => {
-        if (id) {
-            fetchVideoListUser(5)
+        if (userProfile && userProfile.favorites.includes(parseInt(id))) {
+            setIsFavorited(true)
         } else {
-            console.error('fetchVideo ID is null')
+            setIsFavorited(false)
         }
-    }, [])
-
-    if (!comments) {
-        return <div>Comments loading...</div>
-    }
+    }, [userProfile])
 
     if (!videos) {
         return <div>Video loading...</div>
     }
 
-    const video: VideoType | undefined = videos.find(
+    const video: VideoType | undefined = videos?.find(
         (video) => video.id === parseInt(id, 10),
     )
 
     if (!video) {
         return <div>Video not found</div>
+    }
+
+    const handleAddFavorite = () => {
+        if (!userProfile || !id) return
+
+        setIsFavorited(!isFavorited)
+
+        updateUserProfile(userProfile.id, parseInt(id))
+    }
+
+    if (!comments) {
+        return <div>Comments loading...</div>
     }
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -142,7 +166,7 @@ const Video: React.FC = () => {
         formData.append('text', commentText)
         formData.append('liked_by_user', 'false')
         formData.append('likes_count', '0')
-        formData.append('user', userObjectFromStorage?.id.toString() ?? '')
+        formData.append('user', userId!.toString() ?? '')
         formData.append('video', id ?? '')
         formData.append('parent_comment', '')
         addComment(formData)
@@ -163,7 +187,14 @@ const Video: React.FC = () => {
                 <ContainerVideo>
                     <VideoTitle>{video.title}</VideoTitle>
                     <ButtonAnaliz>Аналитика</ButtonAnaliz>
-                    <ButtonAddFav>Добавить в избранное</ButtonAddFav>
+                    <ButtonAddFav
+                        onClick={handleAddFavorite}
+                        isFavorited={isFavorited}
+                    >
+                        {isFavorited
+                            ? 'Удалить из избранного'
+                            : 'Добавить в избранное'}
+                    </ButtonAddFav>
                 </ContainerVideo>
                 <Text>{video.description}</Text>
                 <VideoTitle>Комментарии</VideoTitle>

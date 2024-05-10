@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Layout from '../components/Layout'
 import styled from 'styled-components'
 import { useTypedSelector } from '../hooks/useTypedSelector'
@@ -6,6 +6,7 @@ import TokenChecker from '../components/TokenChecker'
 import AvatarIcon from '../assets/images/avatar.png'
 import { useNavigate } from 'react-router-dom'
 import useAutoLogout from '../hooks/useAutoLogout'
+import { useActions } from '../hooks/useAction'
 
 const Container = styled.div`
     display: flex;
@@ -39,24 +40,34 @@ const Button = styled.button`
 
 const Profile: React.FC = () => {
     useAutoLogout()
+    const { fetchUserProfile } = useActions()
+    const userProfile = useTypedSelector(
+        (state) => state.userprofiles.userProfile,
+    )
 
-    const userString = localStorage.getItem('user')
+    const userIdString = localStorage.getItem('user')
+    const userId = userIdString ? parseInt(userIdString) : null
+    const users = useTypedSelector((state) => state.user.users)
+    const { fetchListUser } = useActions()
 
-    let userObjectFromStorage
+    useEffect(() => {
+        fetchListUser()
+    }, [])
 
-    if (userString !== null) {
-        userObjectFromStorage = JSON.parse(userString)
-    } else {
-        console.log('Объект пользователя отсутствует в localStorage')
+    let loggedInUser = null
+
+    if (userId && users) {
+        loggedInUser = users.find((user) => user.id === userId)
     }
 
-    let username = userObjectFromStorage?.username
-    let role = userObjectFromStorage?.role
-    let first_name = userObjectFromStorage?.first_name
-    let last_name = userObjectFromStorage?.last_name
-    let patronymic = userObjectFromStorage?.patronymic
-    let registration_date = userObjectFromStorage?.registration_date
-    let phone_number = userObjectFromStorage?.phone_number
+    let id = loggedInUser?.id
+    let username = loggedInUser?.username
+    let role = loggedInUser?.role
+    let first_name = loggedInUser?.first_name
+    let last_name = loggedInUser?.last_name
+    let patronymic = loggedInUser?.patronymic
+    let registration_date = loggedInUser?.registration_date
+    let phone_number = loggedInUser?.phone_number
 
     let formattedDate = ''
     if (registration_date) {
@@ -70,7 +81,13 @@ const Profile: React.FC = () => {
         }
         formattedDate = date.toLocaleDateString('ru-RU', options)
     }
-    console.log(formattedDate)
+
+    useEffect(() => {
+        fetchUserProfile(userId!)
+    }, [])
+
+    console.log(userProfile)
+
     return (
         <Layout>
             <TokenChecker targetRoute="/profile"></TokenChecker>

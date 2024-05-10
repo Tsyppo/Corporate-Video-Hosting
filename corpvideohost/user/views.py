@@ -23,6 +23,7 @@ def user_login(request):
                     "message": "Successfully logged in",
                     "refresh": str(refresh),
                     "user": user_serializer.data,
+                    "id": user.pk,
                 },
                 status=status.HTTP_200_OK,
             )

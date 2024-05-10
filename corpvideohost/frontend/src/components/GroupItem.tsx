@@ -30,7 +30,6 @@ const GroupList: React.FC = () => {
                         <li key={group.id}>
                             <h3>{group.title}</h3>
                             <p>{group.description}</p>
-                            {/* Другие поля группы, которые вы хотите отобразить */}
                         </li>
                     ))}
                 </ul>
