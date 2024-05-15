@@ -51,9 +51,10 @@ const Group: React.FC = () => {
     const userIdString = localStorage.getItem('user')
     const userId = userIdString ? parseInt(userIdString) : null
     const users = useTypedSelector((state) => state.user.users)
-    const { fetchListUser } = useActions()
+    const { fetchListUser, fetchVideoList } = useActions()
 
     useEffect(() => {
+        fetchVideoList()
         fetchListUser()
     }, [])
     let loggedInUser = null

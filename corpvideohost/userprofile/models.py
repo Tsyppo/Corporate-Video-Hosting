@@ -17,8 +17,10 @@ class GroupStatus(models.TextChoices):
 
 class Group(models.Model):
     title = models.CharField(max_length=100)
-    members = models.ManyToManyField(User, related_name="member_of_groups")
-    waiting = models.ManyToManyField(User, related_name="waiting_for_groups")
+    members = models.ManyToManyField(User, related_name="member_of_groups", blank=True)
+    waiting = models.ManyToManyField(
+        User, related_name="waiting_for_groups", blank=True
+    )
     creation_date = models.DateTimeField(auto_now_add=True)
     description = models.TextField()
     status = models.CharField(
@@ -62,6 +64,18 @@ class Playlist(models.Model):
 #     "title": "example title",
 #     "group": "1",
 # }
+
+
+class Analytics(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, blank=True)
+    view_date = models.DateTimeField(auto_now_add=True)
+    duration = models.CharField(max_length=100, default="0")
+    full_duration = models.CharField(max_length=100, default="0")
+    status = models.CharField(max_length=100, default="В процессе")
+
+    def __str__(self):
+        return f"{self.user.username} - {self.view_date} - {self.duration}"
 
 
 class SearchHistory(models.Model):

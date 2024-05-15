@@ -5,6 +5,7 @@ import * as GroupAction from './groupActions'
 import * as PlaylistAction from './playlistActions'
 import * as CommentAction from './commentActions'
 import * as UserProfileAction from './userprofileActions'
+import * as AnalyticsActions from './analyticsActions'
 
 export default {
     ...VideoActions,
@@ -14,4 +15,5 @@ export default {
     ...PlaylistAction,
     ...CommentAction,
     ...UserProfileAction,
+    ...AnalyticsActions,
 }

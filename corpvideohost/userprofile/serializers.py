@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from userprofile.models import (
+    Analytics,
     GroupStatus,
     PlaylistStatus,
     SearchHistory,
@@ -28,6 +29,13 @@ class PlaylistSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Playlist
+        fields = "__all__"
+
+
+class AnalyticsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Analytics
         fields = "__all__"
 
 

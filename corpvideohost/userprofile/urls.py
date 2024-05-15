@@ -29,4 +29,6 @@ urlpatterns = [
     path(
         "userprofiles/<int:pk>/", views.user_profile_detail, name="user_profile_detail"
     ),
+    path("analytics/", views.analytics_list, name="analytics_list"),
+    path("analytics/<int:pk>/", views.analytics_detail, name="analytics_detail"),
 ]

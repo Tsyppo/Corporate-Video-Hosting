@@ -1,5 +1,10 @@
 import React from 'react'
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
+import {
+    BrowserRouter as Router,
+    Route,
+    Routes,
+    useLocation,
+} from 'react-router-dom'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Group from './pages/GroupDetail'
@@ -9,11 +14,17 @@ import VideoList from './pages/VideoList'
 import Video from './pages/VideoDetail'
 import GroupList from './pages/GroupList'
 import PlaylistDetail from './pages/PlaylistDetail'
-import VideoPlayerComponent from './components/VideoPlayer'
+import LoadingBar from './components/LoadingBar' // Импортируем компонент LoadingBar
+import { styled } from 'styled-components'
+import { TransitionGroup, CSSTransition } from 'react-transition-group'
+
+const PageWrapper = styled.div`
+    position: relative;
+    width: 100%;
+    height: 100%;
+`
 
 const App: React.FC = () => {
-    const videoFolder = 'https://storage.yandexcloud.net/videohostvideos/sample'
-
     return (
         <Router>
             <Routes>
@@ -27,6 +38,16 @@ const App: React.FC = () => {
                 <Route path="/group/:id" element={<Group />} />
                 <Route path="/playlist/:id" element={<PlaylistDetail />} />
             </Routes>
+            {/* <PageWrapper>
+                <TransitionGroup>
+                    <CSSTransition
+                        timeout={200} // You can adjust this timeout value
+                        classNames="fade"
+                    >
+                        <LoadingBar />
+                    </CSSTransition>
+                </TransitionGroup>
+            </PageWrapper> */}
         </Router>
     )
 }

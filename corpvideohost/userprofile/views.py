@@ -4,8 +4,9 @@ from rest_framework import status
 
 from user.models import User
 from video.models import Video
-from .models import Group, Playlist, SearchHistory, UserProfile
+from .models import Analytics, Group, Playlist, SearchHistory, UserProfile
 from .serializers import (
+    AnalyticsSerializer,
     GroupSerializer,
     PlaylistSerializer,
     SearchHistorySerializer,
@@ -39,7 +40,7 @@ def group_list(request):
                 )
         else:
             return Response(
-                {"error": "Serializer is no valid"},
+                {"error": "Serializer is no valid", "details": serializer.errors},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -300,3 +301,61 @@ def user_profile_detail(request, pk):
     elif request.method == "DELETE":
         user_profile.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET", "POST", "PATCH", "DELETE"])
+def analytics_list(request):
+    if request.method == "GET":
+        analytics = Analytics.objects.all()
+        serializer = AnalyticsSerializer(analytics, many=True)
+        return Response(serializer.data)
+
+    elif request.method == "POST":
+        serializer = AnalyticsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            # Выводим ошибки в консоль для дальнейшего анализа
+            print(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == "PATCH":
+        try:
+            analytic_id = request.data.get("id")
+            analytic = Analytics.objects.get(id=analytic_id)
+            serializer = AnalyticsSerializer(analytic, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Analytics.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+    elif request.method == "DELETE":
+        # Удаляем все записи аналитики
+        Analytics.objects.all().delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Analytics
+from .serializers import AnalyticsSerializer
+
+
+@api_view(["PUT"])
+def analytics_detail(request, pk):
+    try:
+        analytic = Analytics.objects.get(pk=pk)
+    except Analytics.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    # Проверяем, что метод запроса - PATCH
+    if request.method == "PUT":
+        serializer = AnalyticsSerializer(analytic, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

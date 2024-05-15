@@ -28,9 +28,11 @@ const Favorites: React.FC = () => {
     const userIdString = localStorage.getItem('user')
     const userId = userIdString ? parseInt(userIdString) : null
     const users = useTypedSelector((state) => state.user.users)
-    const { fetchListUser } = useActions()
+    const { fetchListUser, fetchVideoList } = useActions()
+    const videos = useTypedSelector((state) => state.video.videos)
 
     useEffect(() => {
+        fetchVideoList()
         fetchListUser()
     }, [])
 

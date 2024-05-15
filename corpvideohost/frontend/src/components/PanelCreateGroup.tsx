@@ -1,7 +1,9 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 import styled from 'styled-components'
 import { useActions } from '../hooks/useAction'
+import { useTypedSelector } from '../hooks/useTypedSelector'
+import { User } from '../types/user'
 
 const Button = styled.button`
     height: 40px;
@@ -152,6 +154,19 @@ const PanelCreateGroup: React.FC<{
 }> = ({ isPanelOpen, togglePanel }) => {
     const userIdString = localStorage.getItem('user')
     const userId = userIdString ? parseInt(userIdString) : null
+    const users = useTypedSelector((state) => state.user.users)
+    const { fetchListUser } = useActions()
+
+    useEffect(() => {
+        fetchListUser()
+    }, [])
+
+    let loggedInUser: User | null = null
+
+    if (userId && users) {
+        const foundUser = users.find((user) => user.id === userId)
+        loggedInUser = foundUser !== undefined ? foundUser : null
+    }
 
     const [title, setTitle] = useState('')
     const [description, setDescription] = useState('')
@@ -184,7 +199,7 @@ const PanelCreateGroup: React.FC<{
         formData.append('title', title)
         formData.append('description', description)
         formData.append('status', status)
-        if (userId) {
+        if (userIdString) {
             formData.append('creator', userIdString)
         }
 

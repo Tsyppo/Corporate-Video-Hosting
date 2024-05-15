@@ -4,38 +4,70 @@ import 'video.js/dist/video-js.css'
 import 'videojs-hls-quality-selector'
 import 'videojs-hls-quality-selector/dist/videojs-hls-quality-selector.css'
 import { Video } from '../types/video'
-import { styled } from 'styled-components'
+import { useTypedSelector } from '../hooks/useTypedSelector'
+import { useActions } from '../hooks/useAction'
+import { useLocation } from 'react-router-dom'
 
-import ffmpeg from 'fluent-ffmpeg' // Импортируем библиотеку ffmpeg
 interface VideoPlayerProps {
     video: Video
     controls: boolean
     width: number
     height: number
+    detail?: boolean
 }
+
+let time = 0
 
 const VideoPlayerComponent: React.FC<VideoPlayerProps> = ({
     video,
     controls,
     width,
     height,
+    detail,
 }) => {
     const videoNode = useRef<HTMLVideoElement>(null)
+    const userIdString = localStorage.getItem('user')
+    const userId = userIdString ? parseInt(userIdString) : null
+    const users = useTypedSelector((state) => state.user.users)
+    const analytics = useTypedSelector((state) => state.analytics.analytics)
+    const [analyticsCreated, setAnalyticsCreated] = useState<boolean>(false)
+    const [initialized, setInitialized] = useState(false)
+    const location = useLocation()
+
+    const { fetchListUser, addAnalytics, fetchAnalytics, updateAnalytics } =
+        useActions()
 
     useEffect(() => {
-        // Получаем ссылку на видеоэлемент
+        fetchAnalytics()
+        fetchListUser()
+    }, [])
+
+    const isAnalyticsExists = (
+        userId: number | null,
+        videoId: number,
+    ): boolean => {
+        const exists = analytics!?.some(
+            (entry) => entry.user === userId && entry.video === videoId,
+        )
+        return exists
+    }
+
+    let loggedInUser = null
+
+    if (userId && users) {
+        loggedInUser = users.find((user) => user.id === userId)
+    }
+
+    useEffect(() => {
         const videoElement = videoNode.current
 
         if (videoElement) {
-            // Обработчик события контекстного меню
             const handleContextMenu = (event: MouseEvent) => {
-                event.preventDefault() // Предотвращаем появление контекстного меню
+                event.preventDefault()
             }
 
-            // Добавляем обработчик события контекстного меню к видеоэлементу
             videoElement.addEventListener('contextmenu', handleContextMenu)
 
-            // Возвращаем функцию очистки для удаления обработчика при размонтировании компонента
             return () => {
                 videoElement.removeEventListener(
                     'contextmenu',
@@ -43,7 +75,7 @@ const VideoPlayerComponent: React.FC<VideoPlayerProps> = ({
                 )
             }
         }
-    }, []) // Пустой массив зависимостей гарантирует, что обработчик установится только один раз при монтировании компонента
+    }, [])
 
     useEffect(() => {
         const videoElement = videoNode.current
@@ -118,92 +150,174 @@ const VideoPlayerComponent: React.FC<VideoPlayerProps> = ({
 
                 const player = videojs(videoNode.current, options)
 
-                // // Обработчик события воспроизведения
-                // player.on('play', () => {
-                //     console.log('Просмотр начат')
-                // })
-
-                // // Обработчик события паузы
-                // player.on('pause', () => {
-                //     console.log('Просмотр приостановлен')
-                // })
-
-                // // Обработчик события завершения воспроизведения
-                // player.on('ended', () => {
-                //     console.log('Просмотр завершён')
-                // })
-
-                // // Обработчик события изменения времени воспроизведения
-                // player.on('timeupdate', () => {
-                //     console.log('Изменение времени воспроизведения')
-                // })
-
                 return () => {
                     if (player) {
                         player.dispose()
                     }
                 }
             }
-        }, 1000) // Задержка в 1 секунду
+        }, 1000)
 
         return () => clearTimeout(timer)
     }, [])
 
     useEffect(() => {
+        const analyticsStatus = localStorage.getItem(
+            `analytics_${userId}_${video.id}`,
+        )
+        if (
+            !initialized &&
+            analytics &&
+            detail &&
+            analyticsStatus !== 'created'
+        ) {
+            if (!isAnalyticsExists(userId, video.id)) {
+                addAnalytics({
+                    user: userId,
+                    video: video.id,
+                    duration: '0',
+                })
+                console.log('Просмотр начат')
+
+                localStorage.setItem(
+                    `analytics_${userId}_${video.id}`,
+                    'created',
+                )
+            } else {
+                console.log('Аналитика для данной пары уже существует')
+            }
+            setInitialized(true)
+        } else {
+            localStorage.removeItem(`analytics_${userId}_${video.id}`)
+        }
+    }, [analytics, detail, initialized, userId, video.id])
+
+    useEffect(() => {
         const videoElement = videoNode.current
         let startTime: number | null = null // Время начала просмотра
         let totalWatchedTime = 0 // Общее время просмотра
-        let time = 0
 
-        if (videoElement) {
-            const handlePlay = () => {
-                startTime = videoElement.currentTime
-            }
+        if (detail) {
+            if (analytics) {
+                const targetAnalytics = analytics!.find(
+                    (entry) =>
+                        entry.user === userId && entry.video === video.id,
+                )
+                const duration = targetAnalytics?.duration
+                    ? parseFloat(targetAnalytics.duration)
+                    : 0
 
-            const handlePause = () => {
-                if (startTime !== null) {
-                    time += videoElement.currentTime - startTime
-                    console.log('Общее время просмотра всего:', time)
-                }
-            }
+                console.log(duration)
 
-            const handleEnded = () => {
-                if (startTime !== null && time < videoElement.duration - 3) {
-                    console.log(
-                        'Просмотр завершен. Общее время просмотра:',
-                        time,
+                time = duration
+
+                if (videoElement) {
+                    const handlePlay = () => {
+                        startTime = videoElement.currentTime
+                    }
+
+                    const handlePause = () => {
+                        if (startTime !== null) {
+                            if (time < videoElement.currentTime)
+                                time += videoElement.currentTime - startTime
+                            console.log('Общее время просмотра всего:', time)
+
+                            if (targetAnalytics) {
+                                updateAnalytics(targetAnalytics.id, {
+                                    duration: time,
+                                    full_duration:
+                                        videoElement!.duration.toString(),
+                                })
+                            }
+                        }
+                    }
+
+                    const handleEnded = async () => {
+                        if (
+                            startTime !== null &&
+                            time < videoElement.duration - 3
+                        ) {
+                            console.log(
+                                'Просмотр завершен. Общее время просмотра:',
+                                time,
+                            )
+                        } else {
+                            if (targetAnalytics) {
+                                await updateAnalytics(targetAnalytics.id, {
+                                    status: 'Просмотрено',
+                                    duration: videoElement!.duration.toString(),
+                                    full_duration:
+                                        videoElement!.duration.toString(),
+                                })
+                            }
+                            console.log('Ролик просмотрен полностью')
+                        }
+                    }
+
+                    const handleTimeUpdate = () => {
+                        if (startTime !== null && !videoElement.paused) {
+                            if (time < videoElement.currentTime)
+                                totalWatchedTime =
+                                    videoElement.currentTime - startTime
+                            else {
+                                startTime = videoElement.currentTime
+                            }
+                            console.log(
+                                'Общее время просмотра:',
+                                totalWatchedTime,
+                            )
+                        }
+                    }
+
+                    const handleSeeked = () => {
+                        startTime = videoElement.currentTime
+                    }
+                    const handleBeforeUnload = async () => {
+                        if (videoNode.current && analytics) {
+                            const targetAnalytics = analytics.find(
+                                (entry) =>
+                                    entry.user === userId &&
+                                    entry.video === video.id,
+                            )
+
+                            if (targetAnalytics) {
+                                await updateAnalytics(targetAnalytics.id, {
+                                    duration: time,
+                                    full_duration:
+                                        videoElement!.duration.toString(),
+                                })
+                            }
+                        }
+                    }
+
+                    videoElement.addEventListener('play', handlePlay)
+                    videoElement.addEventListener('pause', handlePause)
+                    videoElement.addEventListener('ended', handleEnded)
+                    videoElement.addEventListener(
+                        'timeupdate',
+                        handleTimeUpdate,
                     )
-                } else {
-                    console.log('Ролик просмотрен полностью')
+                    videoElement.addEventListener('seeked', handleSeeked)
+                    window.addEventListener('beforeunload', handleBeforeUnload)
+
+                    return () => {
+                        videoElement.removeEventListener('play', handlePlay)
+                        videoElement.removeEventListener('pause', handlePause)
+                        videoElement.removeEventListener('ended', handleEnded)
+                        videoElement.removeEventListener(
+                            'timeupdate',
+                            handleTimeUpdate,
+                        )
+                        videoElement.removeEventListener('seeked', handleSeeked)
+                        window.removeEventListener(
+                            'beforeunload',
+                            handleBeforeUnload,
+                        )
+                    }
                 }
-            }
-
-            const handleTimeUpdate = () => {
-                if (startTime !== null && !videoElement.paused) {
-                    totalWatchedTime = videoElement.currentTime - startTime
-                    console.log('Общее время просмотра:', totalWatchedTime)
-                }
-            }
-
-            const handleSeeked = () => {
-                startTime = videoElement.currentTime
-            }
-
-            videoElement.addEventListener('play', handlePlay)
-            videoElement.addEventListener('pause', handlePause)
-            videoElement.addEventListener('ended', handleEnded)
-            videoElement.addEventListener('timeupdate', handleTimeUpdate)
-            videoElement.addEventListener('seeked', handleSeeked)
-
-            return () => {
-                videoElement.removeEventListener('play', handlePlay)
-                videoElement.removeEventListener('pause', handlePause)
-                videoElement.removeEventListener('ended', handleEnded)
-                videoElement.removeEventListener('timeupdate', handleTimeUpdate)
-                videoElement.removeEventListener('seeked', handleSeeked)
             }
         }
-    }, [])
+    }, [analytics, detail])
 
     return (
         <div>

@@ -16,6 +16,11 @@ export const videoReducer = (
                 ...state,
                 videos: action.payload,
             }
+        case VideoActionTypes.FETCH_ALL_VIDEO_LIST_SUCCESS:
+            return {
+                ...state,
+                videos: action.payload,
+            }
         case VideoActionTypes.FETCH_VIDEO_SUCCESS:
             return {
                 ...state,

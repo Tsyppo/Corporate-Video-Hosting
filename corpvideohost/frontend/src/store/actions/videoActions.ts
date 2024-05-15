@@ -25,7 +25,7 @@ export const fetchVideoList = () => {
                 `http://127.0.0.1:8000/api/allvideos/`,
             )
             dispatch({
-                type: VideoActionTypes.FETCH_VIDEO_LIST_SUCCESS,
+                type: VideoActionTypes.FETCH_ALL_VIDEO_LIST_SUCCESS,
                 payload: response.data,
             })
         } catch (error) {

@@ -24,6 +24,7 @@ const GroupContainer = styled.div`
     display: flex;
     align-items: center;
     margin-top: 20px;
+    width: 850px;
 `
 
 const Avatar = styled.img`
@@ -61,8 +62,7 @@ const Button = styled.button`
     width: 170px;
     font-size: medium;
     margin-left: auto;
-    margin-right: auto;
-    margin-top: 20px;
+
     background-color: ${(props) => props.theme.headerBackground};
     color: ${(props) => props.theme.headerText};
     transition: background-color 0.3s ease;
@@ -89,7 +89,6 @@ const PForCreator = styled.p`
     width: 170px;
     font-size: medium;
     margin-left: auto;
-    margin-right: auto;
     margin-top: 20px;
     background-color: ${(props) => props.theme.playlistobject};
     color: ${(props) => props.theme.headerText};
@@ -102,6 +101,7 @@ const PForCreator = styled.p`
 
 const ButtonAddGroup = styled(Button)`
     margin-left: 300px;
+    margin-top: 20px;
 `
 
 const StyledLink = styled(Link)`
@@ -256,8 +256,8 @@ const GroupList: React.FC = () => {
                                     <Participants>
                                         {group.members ? (
                                             <>
-                                                {group.members.length}{' '}
-                                                участников
+                                                Участников группы:{' '}
+                                                {group.members.length}
                                             </>
                                         ) : (
                                             <>0 участников</>

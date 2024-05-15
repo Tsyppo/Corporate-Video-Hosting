@@ -84,7 +84,7 @@ interface VideoItemProps {
 
 const VideoItems: React.FC<VideoItemProps> = (props) => {
     const { playlistId, groupId } = props
-    const { fetchVideoList, deleteVideo, fetchUserProfile } = useActions()
+    const { deleteVideo, fetchUserProfile } = useActions()
     const videos = useTypedSelector((state) => state.video.videos)
     const playlists = useTypedSelector((state) => state.playlist.playlists)
     const groups = useTypedSelector((state) => state.group.groups)
@@ -97,7 +97,6 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
     const location = useLocation()
 
     useEffect(() => {
-        fetchVideoList()
         fetchUserProfile(userId!)
     }, [])
 

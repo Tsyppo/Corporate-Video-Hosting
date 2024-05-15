@@ -7,12 +7,10 @@ import styled from 'styled-components'
 import TokenChecker from '../components/TokenChecker'
 import CommentItems from '../components/CommentItems'
 import useAutoLogout from '../hooks/useAutoLogout'
-import { useDispatch } from 'react-redux'
-import { addComment } from '../store/actions/commentActions'
-import { CommentAction } from '../types/comment'
 import { useActions } from '../hooks/useAction'
-import { Comment as CommentType } from '../types/comment'
 import VideoPlayer from '../components/VideoPlayer'
+import PanelAnalytics from '../components/PanelAnalytics'
+import { User } from '../types/user'
 
 const Container = styled.div`
     margin-left: 150px;
@@ -21,6 +19,9 @@ const Container = styled.div`
 const VideoTitle = styled.h1`
     margin: 0;
     color: ${(props) => props.theme.text};
+`
+const CommentTitle = styled(VideoTitle)`
+    margin-top: 100px;
 `
 
 const VideoPlace = styled.video`
@@ -73,6 +74,12 @@ const ButtonAddFav = styled(ButtonAnaliz)<{ isFavorited: boolean }>`
         props.isFavorited ? '#858585' : props.theme.headerBackground};
 `
 
+const ButtonAddFavForUser = styled(ButtonAnaliz)<{ isFavorited: boolean }>`
+    margin-left: auto;
+    background-color: ${(props) =>
+        props.isFavorited ? '#858585' : props.theme.headerBackground};
+`
+
 const FlexContainer = styled.form`
     display: flex;
     position: relative;
@@ -90,6 +97,7 @@ const Video: React.FC = () => {
     useAutoLogout()
     const userIdString = localStorage.getItem('user')
     const userId = userIdString ? parseInt(userIdString) : null
+    const { users } = useTypedSelector((state) => state.user)
     const { id } = useParams<{ id?: string }>()
     const parsedId = id ? parseInt(id, 10) : undefined
     const videos = useTypedSelector((state) => state.video.videos)
@@ -99,6 +107,7 @@ const Video: React.FC = () => {
     )
     const [commentText, setCommentText] = useState('')
     const [isFavorited, setIsFavorited] = useState(false)
+    const [isPanelOpen, setIsPanelOpen] = useState(false)
 
     const {
         addComment,
@@ -106,7 +115,24 @@ const Video: React.FC = () => {
         fetchUserProfile,
         fetchVideoList,
         updateUserProfile,
+        fetchAnalytics,
     } = useActions()
+
+    const togglePanel = () => {
+        fetchAnalytics()
+        setIsPanelOpen(!isPanelOpen)
+    }
+
+    let loggedInUser: User | null = null
+
+    if (userId && users) {
+        const foundUser = users.find((user) => user.id === userId)
+        if (foundUser) {
+            loggedInUser = foundUser
+        }
+    }
+
+    let role = loggedInUser?.role
 
     if (!id) {
         return <div>Video ID is not provided</div>
@@ -183,21 +209,42 @@ const Video: React.FC = () => {
                     controls={true}
                     width={1280 * scaleFactor}
                     height={720 * scaleFactor}
+                    detail={true}
                 ></VideoPlayer>
                 <ContainerVideo>
                     <VideoTitle>{video.title}</VideoTitle>
-                    <ButtonAnaliz>Аналитика</ButtonAnaliz>
-                    <ButtonAddFav
-                        onClick={handleAddFavorite}
-                        isFavorited={isFavorited}
-                    >
-                        {isFavorited
-                            ? 'Удалить из избранного'
-                            : 'Добавить в избранное'}
-                    </ButtonAddFav>
+                    {userId === video.creator || role === 'admin' ? (
+                        <>
+                            <ButtonAnaliz onClick={togglePanel}>
+                                Аналитика
+                            </ButtonAnaliz>
+                            <ButtonAddFav
+                                onClick={handleAddFavorite}
+                                isFavorited={isFavorited}
+                            >
+                                {isFavorited
+                                    ? 'Удалить из избранного'
+                                    : 'Добавить в избранное'}
+                            </ButtonAddFav>
+                        </>
+                    ) : (
+                        <ButtonAddFavForUser
+                            onClick={handleAddFavorite}
+                            isFavorited={isFavorited}
+                        >
+                            {isFavorited
+                                ? 'Удалить из избранного'
+                                : 'Добавить в избранное'}
+                        </ButtonAddFavForUser>
+                    )}
+                    <PanelAnalytics
+                        isPanelOpen={isPanelOpen}
+                        togglePanel={togglePanel}
+                        id={parsedId}
+                    />
                 </ContainerVideo>
                 <Text>{video.description}</Text>
-                <VideoTitle>Комментарии</VideoTitle>
+                <CommentTitle>Комментарии</CommentTitle>
                 <FlexContainer onSubmit={handleSubmit}>
                     <Textarea
                         placeholder="Комментарий"

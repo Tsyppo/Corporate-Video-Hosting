@@ -98,13 +98,13 @@ def process_video(video_file):
     # Путь к директории, содержащей скрипт
     script_directory = os.path.join(current_directory, "..", "scripts")
     # Путь к скрипту
-    script_path = os.path.join(script_directory, "script.bat")
+    script_path = os.path.join(script_directory, "script.py")
 
     name_without_extension = os.path.splitext(video_file.name)[0]
     print(name_without_extension)
 
     try:
-        subprocess.run([script_path, video_path], check=True, shell=True)
+        subprocess.run(["python", script_path, video_path], check=True)
     except subprocess.CalledProcessError as e:
         print(f"Ошибка при выполнении скрипта: {e}")
 
@@ -117,7 +117,6 @@ def process_video(video_file):
         local_folder_path, bucket_name, name_without_extension
     )
 
-    # Возвращаем ссылку на папку с обработанными файлами в Object Storage
     return f"{name_without_extension}"
 
 

@@ -28,7 +28,7 @@ const Title = styled.h1`
 
 const VideoList: React.FC = () => {
     const [isPanelOpen, setIsPanelOpen] = useState(false)
-    const { fetchVideoListUser, deleteVideo } = useActions()
+    const { fetchVideoListUser } = useActions()
     useAutoLogout()
 
     const userIdString = localStorage.getItem('user')
