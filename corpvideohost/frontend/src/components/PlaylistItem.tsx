@@ -12,6 +12,7 @@ const PlaylistContainer = styled.div`
 `
 
 const PlaylistTitle = styled.h3`
+    font-size: 24px;
     color: ${(props) => props.theme.text};
 `
 

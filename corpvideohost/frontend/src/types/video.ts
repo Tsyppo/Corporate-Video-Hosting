@@ -20,6 +20,7 @@ export enum VideoActionTypes {
     FETCH_VIDEO_SUCCESS = 'FETCH_VIDEO_SUCCESS',
     ADD_VIDEO = 'ADD_VIDEO',
     DELETE_VIDEO = 'DELETE_VIDEO',
+    UPDATE_VIDEO = 'UPDATE_VIDEO',
     SET_SEARCH_TERM = 'SET_SEARCH_TERM',
     FETCH_ALL_VIDEO_LIST_SUCCESS = 'FETCH_ALL_VIDEO_LIST_SUCCESS',
 }
@@ -38,13 +39,20 @@ export interface FetchVideoSuccessAction {
     type: VideoActionTypes.FETCH_VIDEO_SUCCESS
     payload: Video
 }
+
 export interface AddVideoAction {
     type: VideoActionTypes.ADD_VIDEO
     payload: Video
 }
+
 export interface DeleteVideoAction {
     type: VideoActionTypes.DELETE_VIDEO
     payload: number
+}
+
+export interface UpdateVideoAction {
+    type: VideoActionTypes.UPDATE_VIDEO
+    payload: Video
 }
 
 export interface SetSearchTermAction {
@@ -58,4 +66,5 @@ export type VideoAction =
     | FetchVideoSuccessAction
     | AddVideoAction
     | DeleteVideoAction
+    | UpdateVideoAction
     | SetSearchTermAction

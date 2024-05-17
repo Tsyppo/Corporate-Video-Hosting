@@ -9,6 +9,8 @@ import useAutoLogout from '../hooks/useAutoLogout'
 import { useActions } from '../hooks/useAction'
 
 const Title = styled.h1`
+    font-size: 32px;
+    margin-top: 20px;
     color: ${(props) => props.theme.text};
 `
 const Button = styled.button`

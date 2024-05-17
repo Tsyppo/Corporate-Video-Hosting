@@ -88,6 +88,29 @@ export const deleteVideo = (videoId: number) => {
     }
 }
 
+export const updateVideo = (videoId: number, formData: FormData) => {
+    return async (dispatch: Dispatch<VideoAction>) => {
+        try {
+            const response = await axios.patch<Video>(
+                `http://127.0.0.1:8000/api/videos/${videoId}/`,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                },
+            )
+            dispatch({
+                type: VideoActionTypes.UPDATE_VIDEO,
+                payload: response.data,
+            })
+            console.log('Video updated successfully')
+        } catch (error) {
+            console.error('Error updating video:', error)
+        }
+    }
+}
+
 export const setSearchTerm = (searchTerm: string) => {
     return (dispatch: Dispatch<VideoAction>) => {
         dispatch({

@@ -149,29 +149,14 @@ const Option = styled.option`
     cursor: pointer;
 `
 
-const HiddenInput = styled.input`
-    display: none;
-`
-
-const UploadButton = styled.label`
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: ${(props) => props.theme.headerBackground};
-    color: ${(props) => props.theme.headerText};
-    transition: background-color 0.3s ease;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-`
-
-const PanelCreateVideo: React.FC<{
+const PanelUpdateVideo: React.FC<{
     isPanelOpen: boolean
     togglePanel: () => void
-}> = ({ isPanelOpen, togglePanel }) => {
+    videoId: number
+}> = ({ isPanelOpen, togglePanel, videoId }) => {
     useAutoLogout()
 
     const { fetchVideoListUser } = useActions()
-    const videos = useTypedSelector((state) => state.video.videos)
     const userIdString = localStorage.getItem('user')
     const userId = userIdString ? parseInt(userIdString) : null
 
@@ -183,8 +168,7 @@ const PanelCreateVideo: React.FC<{
     const [description, setDescription] = useState('')
     const [status, setStatus] = useState('unlisted')
     const [video, setVideo] = useState<File | null>(null)
-    const [selectedFileName, setSelectedFileName] = useState<string>('')
-    const { uploadVideo } = useActions()
+    const { updateVideo } = useActions()
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setTitle(e.target.value)
@@ -200,32 +184,16 @@ const PanelCreateVideo: React.FC<{
         setStatus(e.target.value)
     }
 
-    const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files.length > 0) {
-            const file = e.target.files[0]
-            setVideo(file)
-            setSelectedFileName(file.name)
-        }
-    }
-
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-
-        if (!title || !description || !video || !userId) {
-            console.error('Please fill in all fields')
-            return
-        }
 
         const formData = new FormData()
         formData.append('title', title)
         formData.append('description', description)
         formData.append('status', status)
-        formData.append('video', video)
-        if (userIdString) {
-            formData.append('creator', userIdString)
-        }
+        console.log(videoId)
 
-        uploadVideo(formData, userId)
+        updateVideo(videoId, formData)
     }
 
     if (!isPanelOpen) return null
@@ -236,7 +204,7 @@ const PanelCreateVideo: React.FC<{
                 <OverlayContent onClick={togglePanel} />{' '}
             </Overlay>
             <PanelContainer>
-                <MainTitle>Добавление видео</MainTitle>
+                <MainTitle>Редактирование видео</MainTitle>
                 <Container>
                     <FormContainer onSubmit={handleSubmit}>
                         <FormGroup>
@@ -268,24 +236,7 @@ const PanelCreateVideo: React.FC<{
                                 <Option value="unlisted">Unlisted</Option>
                             </StyledSelect>
                         </FormGroup>
-                        <FormGroup>
-                            <>
-                                {/* Скрытый input, который открывается по нажатию на кнопку */}
-                                <HiddenInput
-                                    type="file"
-                                    id="video"
-                                    accept="video/mkv"
-                                    onChange={handleVideoChange}
-                                />
-                                <PlaceTextButton>
-                                    <UploadButton htmlFor="video">
-                                        Выбрать видео
-                                    </UploadButton>
-                                    <Text>{selectedFileName}</Text>
-                                </PlaceTextButton>
-                            </>
-                        </FormGroup>
-                        <Button type="submit">Загрузить</Button>
+                        <Button type="submit">Обновить</Button>
                     </FormContainer>
                 </Container>
                 <ButtonClosePanel onClick={togglePanel}>
@@ -297,4 +248,4 @@ const PanelCreateVideo: React.FC<{
     )
 }
 
-export default PanelCreateVideo
+export default PanelUpdateVideo

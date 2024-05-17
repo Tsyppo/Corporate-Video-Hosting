@@ -33,6 +33,11 @@ export const videoReducer = (
                     ? [...state.videos, action.payload]
                     : [action.payload],
             }
+        case VideoActionTypes.UPDATE_VIDEO: // Добавленный кейс для обновления видео
+            return {
+                ...state,
+                currentVideo: action.payload,
+            }
         case VideoActionTypes.DELETE_VIDEO:
             return {
                 ...state,

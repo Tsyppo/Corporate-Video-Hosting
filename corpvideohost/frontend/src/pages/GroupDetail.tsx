@@ -42,6 +42,14 @@ const VipButton = styled(Button)`
 `
 
 const MainTitle = styled.h1`
+    font-size: 32px;
+    margin-top: 20px;
+    color: ${(props) => props.theme.text};
+`
+
+const Title = styled.h1`
+    font-size: 24px;
+    margin-top: 20px;
     color: ${(props) => props.theme.text};
 `
 
@@ -166,6 +174,7 @@ const Group: React.FC = () => {
                 </Suspense>
             </>
             <PlaylistItem groupId={group.id} />
+            <Title>Видео</Title>
             <VideoItems groupId={group.id} />
         </Layout>
     )

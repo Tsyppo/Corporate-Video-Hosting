@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Video } from '../types/video'
 import { useActions } from '../hooks/useAction'
 import { useTypedSelector } from '../hooks/useTypedSelector'
@@ -7,6 +7,8 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Playlist } from '../types/playlist'
 import { Group } from '../types/group'
 import VideoPlayer from './VideoPlayer'
+import PanelUpdateVideo from './PanelUpdateVideo'
+import PanelCreateGroup from './PanelCreateGroup'
 
 const VideoContainer = styled.div`
     margin-top: 40px;
@@ -61,6 +63,9 @@ const Button = styled.button`
     margin-right: 10px;
     margin-top: 40px;
     cursor: pointer;
+    &:hover {
+        background-color: ${(props) => props.theme.buttonBackground};
+    }
 `
 
 const StyledLink = styled(Link)`
@@ -84,7 +89,7 @@ interface VideoItemProps {
 
 const VideoItems: React.FC<VideoItemProps> = (props) => {
     const { playlistId, groupId } = props
-    const { deleteVideo, fetchUserProfile } = useActions()
+    const { deleteVideo, fetchUserProfile, updateVideo } = useActions()
     const videos = useTypedSelector((state) => state.video.videos)
     const playlists = useTypedSelector((state) => state.playlist.playlists)
     const groups = useTypedSelector((state) => state.group.groups)
@@ -94,6 +99,7 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
     )
     const userIdString = localStorage.getItem('user')
     const userId = userIdString ? parseInt(userIdString) : null
+    const [openPanels, setOpenPanels] = useState<{ [key: number]: boolean }>({})
     const location = useLocation()
 
     useEffect(() => {
@@ -175,6 +181,14 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
         }
         return 'Неизвестный пользователь'
     }
+
+    const togglePanel = (videoId: number) => {
+        setOpenPanels((prev) => ({
+            ...prev,
+            [videoId]: !prev[videoId],
+        }))
+    }
+
     const scaleFactor = 0.7
 
     return (
@@ -210,7 +224,23 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
                                             >
                                                 Удалить видео
                                             </Button>
-                                            <Button>Редактировать</Button>
+                                            <Button
+                                                onClick={() =>
+                                                    togglePanel(video.id)
+                                                }
+                                            >
+                                                Редактировать
+                                            </Button>
+                                            <PanelUpdateVideo
+                                                isPanelOpen={
+                                                    openPanels[video.id] ||
+                                                    false
+                                                }
+                                                togglePanel={() =>
+                                                    togglePanel(video.id)
+                                                }
+                                                videoId={video.id}
+                                            />
                                         </>
                                     )}
                                 </div>

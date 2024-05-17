@@ -19,6 +19,9 @@ const Button = styled.button`
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    &:hover {
+        background-color: ${(props) => props.theme.buttonBackground};
+    }
 `
 const Title = styled.h1`
     margin: 0;

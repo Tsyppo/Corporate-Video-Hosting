@@ -128,7 +128,7 @@ def all_video_list(request):
         return Response(serializer.data)
 
 
-@api_view(["GET", "PUT", "DELETE"])
+@api_view(["GET", "PUT", "PATCH", "DELETE"])
 def video_detail(request, pk):
     try:
         video = Video.objects.get(pk=pk)
@@ -141,6 +141,13 @@ def video_detail(request, pk):
 
     elif request.method == "PUT":
         serializer = VideoSerializer(video, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == "PATCH":
+        serializer = VideoSerializer(video, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

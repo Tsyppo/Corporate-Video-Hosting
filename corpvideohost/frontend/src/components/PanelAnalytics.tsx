@@ -48,7 +48,7 @@ const PanelContainer = styled.div`
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 700px;
+    width: 800px;
     height: 650px;
     padding: 20px;
     border-radius: 10px;
@@ -80,10 +80,11 @@ const OverlayContent = styled.div`
 
 const MainTitle = styled.h1`
     color: ${(props) => props.theme.text};
+    text-align: center;
 `
 
 const Table = styled.table`
-    width: 700px;
+    width: 800px;
     border-collapse: collapse;
     color: ${(props) => props.theme.text};
 `
@@ -169,17 +170,20 @@ const PanelAnalytics: React.FC<{
     )
     targetAnalytics?.view_date
 
-    let formattedDate = ''
-    if (targetAnalytics?.view_date) {
-        const date = new Date(targetAnalytics?.view_date)
-        const options: Intl.DateTimeFormatOptions = {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
+    const formatDate = (viewDate: string): string => {
+        let formattedDate = ''
+        if (viewDate) {
+            const date = new Date(viewDate)
+            const options: Intl.DateTimeFormatOptions = {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+            }
+            formattedDate = date.toLocaleString('ru-RU', options)
         }
-        formattedDate = date.toLocaleString('ru-RU', options)
+        return formattedDate
     }
 
     targetAnalytics?.duration
@@ -282,7 +286,7 @@ const PanelAnalytics: React.FC<{
                                                 {getUserName(analytic.user)}
                                             </TableCell>
                                             <TableCell>
-                                                {formattedDate}
+                                                {formatDate(analytic.view_date)}
                                             </TableCell>
                                             <TableCell>
                                                 {formatTime(

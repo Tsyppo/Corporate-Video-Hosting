@@ -3,14 +3,17 @@ import Layout from '../components/Layout'
 import styled from 'styled-components'
 import { useTypedSelector } from '../hooks/useTypedSelector'
 import TokenChecker from '../components/TokenChecker'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import useAutoLogout from '../hooks/useAutoLogout'
-import { fetchGroupList } from '../store/actions/groupActions'
-import GroupItem from '../components/GroupItem'
+import { useActions } from '../hooks/useAction'
+import VideoSlider from '../components/VideoSlider'
+import AvatarIcon from '../assets/images/avatar.png'
+import { Group } from '../types/group'
+import { User } from '../types/user'
 
 const Title = styled.h1`
     color: ${(props) => props.theme.text};
-    margin-top: 300px;
+    margin-top: 150px;
     margin-left: 300px;
 `
 const Button = styled.button`
@@ -24,15 +27,130 @@ const Button = styled.button`
     margin-top: 20px;
     margin-left: 700px;
 `
+const Container = styled.div`
+    margin-left: 300px;
+    display: flex;
+    flex-direction: column;
+`
+
+const GroupContainer = styled.div`
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+    width: 850px;
+`
+
+const Avatar = styled.img`
+    height: 60px;
+    width: 60px;
+    border-radius: 50%;
+    margin-right: 20px;
+    margin-top: 20px;
+`
+
+const GroupInfo = styled.div`
+    display: flex;
+    flex-direction: column;
+`
+
+const GroupName = styled.h2`
+    color: ${(props) => props.theme.text};
+    margin-bottom: 12px;
+`
+const GroupCreator = styled.h4`
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: ${(props) => props.theme.text};
+`
+
+const Participants = styled.h4`
+    margin-top: 0;
+    font-size: 13px;
+    color: ${(props) => props.theme.text};
+`
+
+const ButtonForWait = styled(Button)`
+    background-color: ${(props) => props.theme.playlistobject};
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    &:hover {
+        background-color: black;
+    }
+`
+
+const PForCreator = styled.p`
+    height: 20px;
+    width: 170px;
+    font-size: medium;
+    margin-left: auto;
+    margin-top: 20px;
+    background-color: ${(props) => props.theme.playlistobject};
+    color: ${(props) => props.theme.headerText};
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    padding-top: 12px;
+    padding-bottom: 12px;
+`
+
+const ButtonAddGroup = styled(Button)`
+    margin-left: 300px;
+    margin-top: 20px;
+`
+
+const StyledLink = styled(Link)`
+    text-decoration: none;
+    color: inherit;
+
+    &:hover {
+        color: inherit;
+    }
+
+    &:active {
+        color: inherit;
+    }
+`
 
 const Home: React.FC = () => {
     const navigate = useNavigate()
     useAutoLogout()
+
+    const videos = useTypedSelector((state) => state.video.videos)
     const { groups } = useTypedSelector((state) => state.group)
+    const { users } = useTypedSelector((state) => state.user)
+
+    const { fetchVideoList, applyToGroup, cancelApplication, fetchGroupList } =
+        useActions()
+
+    const userIdString = localStorage.getItem('user')
+    const userId = userIdString ? parseInt(userIdString) : null
 
     useEffect(() => {
+        fetchVideoList()
         fetchGroupList()
     }, [])
+
+    if (!videos) {
+        return <div>Videos not found</div>
+    }
+
+    let loggedInUser: User | null = null
+
+    if (userId && users) {
+        const foundUser = users.find((user) => user.id === userId)
+        if (foundUser) {
+            loggedInUser = foundUser
+        }
+    }
+
+    const filteredGroups = groups?.filter(
+        (group) =>
+            group.members.includes(loggedInUser?.id!) ||
+            group.creator === loggedInUser?.id,
+    )
+
+    const scaleFactor = 0.7
 
     const userString = localStorage.getItem('user')
 
@@ -40,10 +158,65 @@ const Home: React.FC = () => {
         navigate('/groups')
     }
 
+    const getCreatorName = (creatorId: number) => {
+        // Ищем пользователя с указанным ID в списке пользователей
+        const creator = users?.find((user) => user.id === creatorId)
+        if (creator) {
+            return creator.username // Возвращаем имя пользователя, если найден
+        }
+        return 'Неизвестный пользователь'
+    }
+
+    // Функция для обработки подачи заявки на вступление в группу
+    const handleApplyToGroup = (groupId: number) => {
+        const userId = loggedInUser?.id // Получаем ID пользователя из localStorage
+        if (userId) {
+            // Передаем ID пользователя и ID группы в действие applyToGroup
+            applyToGroup(groupId, [userId])
+            console.log(`Applied to group ${groupId}`)
+        } else {
+            console.error('User ID not found in localStorage')
+        }
+    }
+
+    const handleCancelToGroup = (groupId: number) => {
+        const userId = loggedInUser?.id // Получаем ID пользователя из localStorage
+        if (userId) {
+            // Передаем ID пользователя и ID группы в действие applyToGroup
+            cancelApplication(groupId, userId)
+            console.log(`Canceled to group ${groupId}`)
+        } else {
+            console.error('User ID not found in localStorage')
+        }
+    }
+
+    const renderApplyButton = (group: Group) => {
+        // Проверяем, если пользователь уже в группе или в списке ожидающих, не показываем кнопку
+        if (group.creator == loggedInUser?.id) {
+            return <PForCreator>Вы создатель</PForCreator>
+        }
+        if (group.waiting.includes(loggedInUser?.id!)) {
+            return (
+                <ButtonForWait onClick={() => handleCancelToGroup(group.id)}>
+                    Отменить заявку
+                </ButtonForWait>
+            )
+        }
+        if (group.members.includes(loggedInUser?.id!)) {
+            return <PForCreator>Вы в группе</PForCreator>
+        }
+        return (
+            <Button onClick={() => handleApplyToGroup(group.id)}>
+                Подать заявку
+            </Button>
+        )
+    }
+
     return (
         <Layout>
             <TokenChecker targetRoute="/main"></TokenChecker>
-            {groups && groups.length === 0 ? (
+            <VideoSlider></VideoSlider>
+            {filteredGroups?.length === 0 ? (
                 <div>
                     <Title>
                         Здесь будут отображаться группы в которых вы состоите!
@@ -53,7 +226,56 @@ const Home: React.FC = () => {
                     </Button>
                 </div>
             ) : (
-                <GroupItem></GroupItem>
+                <Container>
+                    {filteredGroups ? (
+                        <div>
+                            {filteredGroups.map((group: Group) => (
+                                <GroupContainer>
+                                    <Avatar src={AvatarIcon} />
+                                    <GroupInfo>
+                                        <GroupName>
+                                            {group.members.includes(
+                                                loggedInUser?.id!,
+                                            ) ? (
+                                                <StyledLink
+                                                    to={`/group/${group.id}`}
+                                                >
+                                                    {group.title}
+                                                </StyledLink>
+                                            ) : group.creator ===
+                                              loggedInUser?.id ? (
+                                                <StyledLink
+                                                    to={`/group/${group.id}`}
+                                                >
+                                                    {group.title}
+                                                </StyledLink>
+                                            ) : (
+                                                <span>{group.title}</span>
+                                            )}
+                                        </GroupName>
+                                        <GroupCreator>
+                                            Создатель:{' '}
+                                            {getCreatorName(group.creator)}
+                                        </GroupCreator>
+                                        <Participants>
+                                            {group.members ? (
+                                                <>
+                                                    Участников группы:{' '}
+                                                    {group.members.length}
+                                                </>
+                                            ) : (
+                                                <>0 участников</>
+                                            )}
+                                        </Participants>
+                                    </GroupInfo>
+                                    {renderApplyButton(group)}
+                                </GroupContainer>
+                            ))}
+                        </div>
+                    ) : (
+                        <p>Loading...</p>
+                    )}
+                </Container>
             )}
         </Layout>
     )

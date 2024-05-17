@@ -83,6 +83,7 @@ const FormContainer = styled.form`
 
 const MainTitle = styled.h1`
     color: ${(props) => props.theme.text};
+    text-align: center;
 `
 
 const FormGroup = styled.div`
