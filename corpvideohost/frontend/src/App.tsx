@@ -14,6 +14,7 @@ import VideoList from './pages/VideoList'
 import Video from './pages/VideoDetail'
 import GroupList from './pages/GroupList'
 import PlaylistDetail from './pages/PlaylistDetail'
+import History from './pages/History'
 import LoadingBar from './components/LoadingBar' // Импортируем компонент LoadingBar
 import { styled } from 'styled-components'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
@@ -37,6 +38,7 @@ const App: React.FC = () => {
                 <Route path="/video/:id" element={<Video />} />
                 <Route path="/group/:id" element={<Group />} />
                 <Route path="/playlist/:id" element={<PlaylistDetail />} />
+                <Route path="/history" element={<History />} />
             </Routes>
             {/* <PageWrapper>
                 <TransitionGroup>

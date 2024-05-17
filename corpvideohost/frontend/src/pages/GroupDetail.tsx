@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Layout from '../components/Layout'
 import styled from 'styled-components'
@@ -11,6 +11,8 @@ import useAutoLogout from '../hooks/useAutoLogout'
 import { fetchGroupList } from '../store/actions/groupActions'
 import { useDispatch } from 'react-redux'
 import { useActions } from '../hooks/useAction'
+import UserList from '../components/UserList'
+import { User } from '../types/user'
 
 const LazyPanelViewWaitingUserList = React.lazy(
     () => import('../components/PanelViewWaitingUserList'),
@@ -35,6 +37,9 @@ const Button = styled.button`
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    &:hover {
+        background-color: ${(props) => props.theme.buttonBackground};
+    }
 `
 
 const VipButton = styled(Button)`
@@ -54,28 +59,32 @@ const Title = styled.h1`
 `
 
 const Group: React.FC = () => {
-    useAutoLogout()
-
+    const users = useTypedSelector((state) => state.user.users)
+    const { groups } = useTypedSelector((state) => state.group)
     const userIdString = localStorage.getItem('user')
     const userId = userIdString ? parseInt(userIdString) : null
-    const users = useTypedSelector((state) => state.user.users)
-    const { fetchListUser, fetchVideoList } = useActions()
+    const { fetchListUser, fetchVideoList, fetchGroupList } = useActions()
+
+    const [isPanelAddVideoOpen, setIsPanelAddVideoOpen] = useState(false)
+    const [isPanelPlaylistOpen, setIsPanelPlaylistOpen] = useState(false)
+    const [isPanelViewWaitingUserListOpen, setIsPanelViewWaitingUserListOpen] =
+        useState(false)
+    const [groupUsers, setGroupUsers] = useState<User[]>([])
+
+    useAutoLogout()
 
     useEffect(() => {
         fetchVideoList()
         fetchListUser()
+        fetchGroupList()
     }, [])
+
     let loggedInUser = null
     if (userId && users) {
         loggedInUser = users.find((user) => user.id === userId)
     }
 
     let role = loggedInUser?.role
-
-    const [isPanelAddVideoOpen, setIsPanelAddVideoOpen] = useState(false)
-    const [isPanelPlaylistOpen, setIsPanelPlaylistOpen] = useState(false)
-    const [isPanelViewWaitingUserListOpen, setIsPanelViewWaitingUserListOpen] =
-        useState(false)
 
     const togglePanelAddVideo = () => {
         setIsPanelAddVideoOpen(!isPanelAddVideoOpen)
@@ -89,21 +98,6 @@ const Group: React.FC = () => {
     }
 
     const { id } = useParams<{ id?: string }>()
-
-    const dispatch = useDispatch()
-    const { groups } = useTypedSelector((state) => state.group)
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                await fetchGroupList()(dispatch)
-            } catch (error) {
-                console.error('Error fetching group list:', error)
-            }
-        }
-
-        fetchData()
-    }, [dispatch])
 
     if (!groups) {
         return (
@@ -122,6 +116,17 @@ const Group: React.FC = () => {
 
     if (!group) {
         return <div>Группа не найдена</div>
+    }
+
+    const filtredGroupUsers =
+        group && users
+            ? (group.members
+                  .map((memberId) => users.find((user) => user.id === memberId))
+                  .filter(Boolean) as User[])
+            : []
+
+    const handleRemoveUser = (userId: number) => {
+        setGroupUsers(groupUsers.filter((user) => user.id !== userId))
     }
 
     return (
@@ -176,6 +181,11 @@ const Group: React.FC = () => {
             <PlaylistItem groupId={group.id} />
             <Title>Видео</Title>
             <VideoItems groupId={group.id} />
+            <UserList
+                users={filtredGroupUsers}
+                groupId={group.id}
+                onUserRemoved={handleRemoveUser}
+            />{' '}
         </Layout>
     )
 }

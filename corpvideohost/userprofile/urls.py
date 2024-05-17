@@ -17,6 +17,11 @@ urlpatterns = [
     path(
         "groups/<int:pk>/add-to-members/", views.add_to_members, name="add_to_members"
     ),
+    path(
+        "groups/<int:pk>/remove-from-members/",
+        views.remove_from_members,
+        name="remove_from_members",
+    ),
     path("playlists/", views.playlist_list, name="playlist_list"),
     path("playlists/<int:pk>/", views.playlist_detail, name="playlist_detail"),
     path("searchhistory/", views.search_history_list, name="search_history_list"),

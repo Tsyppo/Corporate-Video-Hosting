@@ -121,12 +121,7 @@ const PanelViewWaitingUserList: React.FC<{
 }> = ({ isPanelOpen, togglePanelViewWaitingUserList, groupId }) => {
     useAutoLogout()
 
-    const {
-        fetchListUser,
-        fetchVideoListUser,
-        addToMembers,
-        cancelApplication,
-    } = useActions()
+    const { fetchListUser, addToMembers, cancelApplication } = useActions()
 
     const [actionInProgress, setActionInProgress] = useState<boolean>(false)
 
@@ -139,10 +134,6 @@ const PanelViewWaitingUserList: React.FC<{
 
     useEffect(() => {
         fetchListUser()
-    }, [])
-
-    useEffect(() => {
-        fetchVideoListUser(userId!)
     }, [])
 
     const waitingUsers =

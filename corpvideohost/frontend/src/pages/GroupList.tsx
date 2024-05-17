@@ -126,6 +126,7 @@ const GroupList: React.FC = () => {
     useAutoLogout()
     const { users } = useTypedSelector((state) => state.user)
     const { groups } = useTypedSelector((state) => state.group)
+    const [filteredGroups, setFilteredGroups] = useState<Group[]>([])
 
     const { applyToGroup, cancelApplication, fetchListUser, fetchGroupList } =
         useActions()
@@ -134,6 +135,23 @@ const GroupList: React.FC = () => {
         fetchListUser()
         fetchGroupList()
     }, [])
+
+    useEffect(() => {
+        const filtered = groups?.filter((group) => {
+            const creationDate = new Date(group.creation_date)
+            const thirtyDaysAgo = new Date()
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+            return creationDate >= thirtyDaysAgo
+        })
+
+        const sortedGroups = filtered?.sort((a, b) => {
+            const dateA = new Date(a.creation_date).getTime()
+            const dateB = new Date(b.creation_date).getTime()
+            return dateA - dateB
+        })
+
+        setFilteredGroups(sortedGroups!)
+    }, [groups])
 
     const userIdString = localStorage.getItem('user')
     const userId = userIdString ? parseInt(userIdString) : null
@@ -223,9 +241,9 @@ const GroupList: React.FC = () => {
                 />
             </>
             <Container>
-                {groups ? (
+                {filteredGroups ? (
                     <div>
-                        {groups.map((group: Group) => (
+                        {filteredGroups.map((group: Group) => (
                             <GroupContainer>
                                 <Avatar src={AvatarIcon} />
                                 <GroupInfo>

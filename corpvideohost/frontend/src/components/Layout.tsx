@@ -9,6 +9,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import styled, { createGlobalStyle, ThemeProvider } from 'styled-components'
 import SiteIcon from '../assets/images/Panda.svg'
 import HomeIcon from '../assets/images/home.svg'
+import HistoryIcon from '../assets/images/history.svg'
 import GroupIcon from '../assets/images/group.svg'
 import FavoriteIcon from '../assets/images/favorite.svg'
 import BackgroundPng from '../assets/images/background.png'
@@ -373,29 +374,21 @@ const Layout: React.FC<LayoutProps> = React.memo(({ children }) => {
                 <Sidebar style={{ display: showSidebar ? 'block' : 'none' }}>
                     <Navigation>
                         <NavLink to="/main">
-                            <Icon
-                                src={HomeIcon}
-                                alt="Panda Icon"
-                                effect="blur"
-                            ></Icon>
+                            <Icon src={HomeIcon}></Icon>
                             <Label>{locale.mainNavHome}</Label>
                         </NavLink>
                         <NavLink to="/favorites">
-                            <Icon
-                                src={FavoriteIcon}
-                                alt="Panda Icon"
-                                effect="blur"
-                            ></Icon>
+                            <Icon src={FavoriteIcon}></Icon>
                             <Label>{locale.mainNavFavorites}</Label>
                         </NavLink>
+
                         <NavLink to="/groups">
-                            {' '}
-                            <Icon
-                                src={GroupIcon}
-                                alt="Panda Icon"
-                                effect="blur"
-                            ></Icon>
+                            <Icon src={GroupIcon}></Icon>
                             <Label>{locale.mainNavGroup}</Label>
+                        </NavLink>
+                        <NavLink to="/history">
+                            <Icon src={HistoryIcon}></Icon>
+                            <Label>{locale.mainNavHistory}</Label>
                         </NavLink>
                     </Navigation>
                 </Sidebar>

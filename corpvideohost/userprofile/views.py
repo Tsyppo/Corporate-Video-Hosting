@@ -135,6 +135,28 @@ def add_to_members(request, pk):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(["PATCH"])
+def remove_from_members(request, pk):
+    try:
+        group = Group.objects.get(pk=pk)
+    except Group.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "PATCH":
+        userId = request.data.get("userId")
+
+        if userId is not None:
+            try:
+                group.members.remove(userId)
+                group.save()
+                serializer = GroupSerializer(group)
+                return Response(serializer.data)
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(["GET", "POST"])
 def playlist_list(request):
     if request.method == "GET":

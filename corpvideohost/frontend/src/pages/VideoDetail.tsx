@@ -108,6 +108,32 @@ const Video: React.FC = () => {
     const [commentText, setCommentText] = useState('')
     const [isFavorited, setIsFavorited] = useState(false)
     const [isPanelOpen, setIsPanelOpen] = useState(false)
+    const [viewedVideoId, setViewedVideoId] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (id) {
+            // Получаем текущий список просмотренных видео из локального хранилища
+            const viewedVideoIdsString = localStorage.getItem('viewedVideoIds')
+            let viewedVideoIds: string[] = viewedVideoIdsString
+                ? JSON.parse(viewedVideoIdsString)
+                : []
+
+            // Если текущее видео уже было просмотрено, удаляем его из списка
+            const index = viewedVideoIds.indexOf(id)
+            if (index !== -1) {
+                viewedVideoIds.splice(index, 1)
+            }
+
+            // Добавляем текущее видео в конец списка просмотренных
+            viewedVideoIds.push(id)
+
+            // Обновляем значение в локальном хранилище
+            localStorage.setItem(
+                'viewedVideoIds',
+                JSON.stringify(viewedVideoIds),
+            )
+        }
+    }, [id])
 
     const {
         addComment,

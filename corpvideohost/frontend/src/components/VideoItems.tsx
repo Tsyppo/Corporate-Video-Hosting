@@ -140,6 +140,12 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
                         (playlistVideoId) => playlistVideoId === video.id,
                     ),
                 )
+                filtredVideos.sort((a, b) => {
+                    return (
+                        new Date(a.upload_date).getTime() -
+                        new Date(b.upload_date).getTime()
+                    )
+                })
             } else {
                 console.log('Playlist not found')
             }
@@ -156,6 +162,12 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
                         (groupVideoId) => groupVideoId === video.id,
                     ),
                 )
+                filtredVideos.sort((a, b) => {
+                    return (
+                        new Date(a.upload_date).getTime() -
+                        new Date(b.upload_date).getTime()
+                    )
+                })
             } else {
                 console.log('Group not found')
             }
@@ -190,6 +202,7 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
     }
 
     const scaleFactor = 0.7
+    // Сортировка видео по дате создания от старых к новым
 
     return (
         <div>
