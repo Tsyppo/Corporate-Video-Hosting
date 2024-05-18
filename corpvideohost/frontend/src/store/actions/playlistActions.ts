@@ -61,3 +61,24 @@ export const deletePlaylist = (playlistId: number) => {
         }
     }
 }
+
+export const updatePlaylist = (
+    playlistId: number,
+    updatedPlaylistData: Partial<Playlist>,
+) => {
+    return async (dispatch: Dispatch<PlaylistAction>) => {
+        try {
+            const response = await axios.patch<Playlist>(
+                `http://127.0.0.1:8000/api/playlists/${playlistId}/`,
+                updatedPlaylistData,
+            )
+            dispatch({
+                type: PlaylistActionTypes.UPDATE_PLAYLIST,
+                payload: response.data,
+            })
+            console.log('Playlist updated successfully')
+        } catch (error) {
+            console.error('Error updating playlist:', error)
+        }
+    }
+}

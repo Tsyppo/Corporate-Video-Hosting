@@ -64,7 +64,7 @@ const Button = styled.button`
     margin-left: auto;
 
     background-color: ${(props) => props.theme.headerBackground};
-    color: ${(props) => props.theme.headerText};
+    color: ${(props) => props.theme.buttonColor};
     transition: background-color 0.3s ease;
     padding: 10px 20px;
     border: none;

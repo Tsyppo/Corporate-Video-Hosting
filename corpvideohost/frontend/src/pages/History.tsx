@@ -90,6 +90,9 @@ const History: React.FC = () => {
     const { fetchVideoList } = useActions()
     const videos = useTypedSelector((state) => state.video.videos)
     const users = useTypedSelector((state) => state.user.users)
+    const { searchTerm } = useTypedSelector((state) => ({
+        searchTerm: state.video.searchTerm,
+    }))
 
     useAutoLogout()
 
@@ -111,8 +114,11 @@ const History: React.FC = () => {
         ? JSON.parse(viewedVideoIdsString)
         : []
 
-    const filteredVideos = videos.filter((video) =>
+    let filteredVideos = videos.filter((video) =>
         viewedVideoIds.includes(video.id.toString()),
+    )
+    filteredVideos = filteredVideos.filter((video) =>
+        video.title.toLowerCase().includes(searchTerm.toLowerCase()),
     )
     const sortedFilteredVideos = filteredVideos.sort((a, b) => {
         const indexA = viewedVideoIds.indexOf(a.id.toString())

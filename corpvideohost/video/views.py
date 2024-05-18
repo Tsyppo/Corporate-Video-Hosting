@@ -108,8 +108,7 @@ def process_video(video_file):
     except subprocess.CalledProcessError as e:
         print(f"Ошибка при выполнении скрипта: {e}")
 
-    local_folder_path = f"C:\\Users\\ANTON\\Диплом\\Corporate-Video-Hosting\\corpvideohost\\scripts\\{name_without_extension}"
-
+    local_folder_path = os.path.join(script_directory, name_without_extension)
     # Имя бакета, куда будут загружены файлы
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
     # Загрузка содержимого папки

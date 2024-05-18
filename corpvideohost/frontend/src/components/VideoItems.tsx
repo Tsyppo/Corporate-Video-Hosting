@@ -8,7 +8,8 @@ import { Playlist } from '../types/playlist'
 import { Group } from '../types/group'
 import VideoPlayer from './VideoPlayer'
 import PanelUpdateVideo from './PanelUpdateVideo'
-import PanelCreateGroup from './PanelCreateGroup'
+import { User } from '../types/user'
+import axios from 'axios'
 
 const VideoContainer = styled.div`
     margin-top: 40px;
@@ -89,7 +90,8 @@ interface VideoItemProps {
 
 const VideoItems: React.FC<VideoItemProps> = (props) => {
     const { playlistId, groupId } = props
-    const { deleteVideo, fetchUserProfile, updateVideo } = useActions()
+    const { deleteVideo, fetchUserProfile, updateGroup, updatePlaylist } =
+        useActions()
     const videos = useTypedSelector((state) => state.video.videos)
     const playlists = useTypedSelector((state) => state.playlist.playlists)
     const groups = useTypedSelector((state) => state.group.groups)
@@ -97,17 +99,74 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
     const userProfile = useTypedSelector(
         (state) => state.userprofiles.userProfile,
     )
+    const { searchTerm } = useTypedSelector((state) => ({
+        searchTerm: state.video.searchTerm,
+    }))
     const userIdString = localStorage.getItem('user')
     const userId = userIdString ? parseInt(userIdString) : null
     const [openPanels, setOpenPanels] = useState<{ [key: number]: boolean }>({})
     const location = useLocation()
+    const { fetchListUser } = useActions()
 
     useEffect(() => {
+        fetchListUser()
         fetchUserProfile(userId!)
     }, [])
 
+    let loggedInUser: User | null = null
+
+    if (userId && users) {
+        const foundUser = users.find((user) => user.id === userId)
+        if (foundUser) {
+            loggedInUser = foundUser
+        }
+    }
+
+    let role = loggedInUser?.role
     const handleDelete = (videoId: number) => {
         deleteVideo(videoId)
+    }
+
+    const handleRemoveVideoFromVideoGroup = async (videoId: number) => {
+        try {
+            const response = await axios.get<Group>(
+                `http://127.0.0.1:8000/api/groups/${groupId}/`,
+            )
+            const currentGroup = response.data
+
+            const updatedVideoIds = currentGroup.videos.filter(
+                (id) => id !== videoId,
+            )
+
+            if (groupId) {
+                updateGroup(groupId, {
+                    videos: updatedVideoIds,
+                } as Partial<Group>)
+            }
+        } catch (error) {
+            console.error('Error updating group:', error)
+        }
+    }
+
+    const handleRemoveVideoFromVideoPlaylist = async (videoId: number) => {
+        try {
+            const response = await axios.get<Playlist>(
+                `http://127.0.0.1:8000/api/playlists/${playlistId}/`,
+            )
+            const currentPlaylist = response.data
+
+            const updatedVideoIds = currentPlaylist.videos.filter(
+                (id) => id !== videoId,
+            )
+
+            if (playlistId) {
+                updatePlaylist(playlistId, {
+                    videos: updatedVideoIds,
+                } as Partial<Group>)
+            }
+        } catch (error) {
+            console.error('Error updating group:', error)
+        }
     }
 
     if (!videos) {
@@ -146,6 +205,11 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
                         new Date(b.upload_date).getTime()
                     )
                 })
+                filtredVideos = filtredVideos.filter((video) =>
+                    video.title
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase()),
+                )
             } else {
                 console.log('Playlist not found')
             }
@@ -168,6 +232,11 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
                         new Date(b.upload_date).getTime()
                     )
                 })
+                filtredVideos = filtredVideos.filter((video) =>
+                    video.title
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase()),
+                )
             } else {
                 console.log('Group not found')
             }
@@ -179,9 +248,15 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
             filtredVideos = videos.filter((video) =>
                 userProfile.favorites.includes(video.id),
             )
+            filtredVideos = filtredVideos.filter((video) =>
+                video.title.toLowerCase().includes(searchTerm.toLowerCase()),
+            )
         }
     } else {
         filtredVideos = videos
+        filtredVideos = filtredVideos.filter((video) =>
+            video.title.toLowerCase().includes(searchTerm.toLowerCase()),
+        )
     }
 
     // Функция для получения имени пользователя по его идентификатору
@@ -227,7 +302,7 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
                                 </VideoCreator>
 
                                 <div>
-                                    {/* Показываем кнопки "Удалить" и "Редактировать" только на странице /video */}
+                                    {/* Показываем кнопки "Удалить" и "Редактировать" только на странице /videos */}
                                     {location.pathname === '/videos' && (
                                         <>
                                             <Button
@@ -256,6 +331,35 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
                                             />
                                         </>
                                     )}
+                                    {/* Показываем кнопку "Убрать из группы" только на странице /group/:id и пользователям с ролью "менеджер" или "администратор" */}
+                                    {location.pathname.startsWith('/group/') &&
+                                        (role === 'manager' ||
+                                            role === 'admin') && (
+                                            <Button
+                                                onClick={() =>
+                                                    handleRemoveVideoFromVideoGroup(
+                                                        video.id,
+                                                    )
+                                                }
+                                            >
+                                                Убрать из группы
+                                            </Button>
+                                        )}
+                                    {location.pathname.startsWith(
+                                        '/playlist/',
+                                    ) &&
+                                        (role === 'manager' ||
+                                            role === 'admin') && (
+                                            <Button
+                                                onClick={() =>
+                                                    handleRemoveVideoFromVideoPlaylist(
+                                                        video.id,
+                                                    )
+                                                }
+                                            >
+                                                Убрать из плейлиста
+                                            </Button>
+                                        )}
                                 </div>
                             </VideoInfoContainer>
                         </VideoContainer>

@@ -1,7 +1,9 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import styled, { keyframes } from 'styled-components'
 import axios from 'axios'
 import { User } from '../types/user'
+import { useTypedSelector } from '../hooks/useTypedSelector'
+import { useActions } from '../hooks/useAction'
 
 const slideOut = keyframes`
     0% {
@@ -17,21 +19,17 @@ const slideOut = keyframes`
 const UserListContainer = styled.div`
     background-color: ${(props) => props.theme.headerBackground};
     transition: background-color 0.3s ease;
-    position: fixed;
-    top: 0;
     z-index: 100;
-    right: 0;
-    top: 0;
-    bottom: 0;
     width: 300px;
     background-color: ${(props) => props.theme.headerBackground};
     padding: 20px;
-    margin-top: 170px;
-    margin-right: 300px;
+    margin-top: 100px;
+    margin-left: 100px;
     margin-bottom: 100px;
     overflow-y: auto;
-    border-radius: 15px; /* Радиус скругления у контейнера */
+    border-radius: 30px;
     max-height: calc(100vh - 270px);
+    min-height: calc(100vh - 270px);
 `
 const MainTitle = styled.h3`
     font-size: 22px;
@@ -46,6 +44,8 @@ const UserItem = styled.div<{ animate: boolean }>`
     align-items: center;
     margin-bottom: 10px;
     margin-top: 10px;
+    width: 80%;
+    margin-left: 20px;
     padding: 10px;
     background-color: #fff;
     border: 1px solid #ddd;
@@ -77,6 +77,22 @@ const UserList: React.FC<UserListProps> = ({
     groupId,
     onUserRemoved,
 }) => {
+    const userIdString = localStorage.getItem('user')
+    const userId = userIdString ? parseInt(userIdString) : null
+    const userss = useTypedSelector((state) => state.user.users)
+    const { fetchListUser, fetchVideoList } = useActions()
+
+    useEffect(() => {
+        fetchVideoList()
+        fetchListUser()
+    }, [])
+
+    let loggedInUser = null
+    if (userId && userss) {
+        loggedInUser = userss.find((user) => user.id === userId)
+    }
+
+    let role = loggedInUser?.role
     const [userList, setUserList] = useState(
         users.map((user) => ({ ...user, animate: false })),
     )
@@ -109,9 +125,11 @@ const UserList: React.FC<UserListProps> = ({
             {userList.map((user) => (
                 <UserItem key={user.id} animate={user.animate}>
                     <span>{user.username}</span>
-                    <RemoveButton onClick={() => handleRemoveUser(user.id)}>
-                        Удалить
-                    </RemoveButton>
+                    {role === 'manager' || role === 'admin' ? (
+                        <RemoveButton onClick={() => handleRemoveUser(user.id)}>
+                            Удалить
+                        </RemoveButton>
+                    ) : null}
                 </UserItem>
             ))}
         </UserListContainer>

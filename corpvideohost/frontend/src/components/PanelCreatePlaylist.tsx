@@ -34,8 +34,9 @@ const ButtonPanel = styled.button`
 `
 
 const ButtonClosePanel = styled(ButtonPanel)`
-    margin-top: 140px;
-    margin-left: 70%;
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
 `
 
 const ContainerPanel = styled.div`
@@ -134,18 +135,32 @@ const Option = styled.option`
     cursor: pointer;
 `
 
-const VideoCheckboxContainer = styled.div`
+const VideoCheckboxContainer = styled.ul`
+    max-height: 500px;
+    overflow-y: auto;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    margin-top: 15px;
+`
+
+const VideoCheckboxItem = styled.li`
     display: flex;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
+    align-items: center;
+    margin-bottom: 10px;
 `
 
 const VideoCheckboxLabel = styled.label`
-    display: block;
-    margin-right: 20px;
-    margin-bottom: 10px;
     font-size: 16px;
     color: ${(props) => props.theme.text};
+    margin-left: 8px;
+`
+
+const VideoCheckboxInput = styled.input`
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: ${(props) => props.theme.headerBackground};
 `
 
 const PanelCreatePlaylist: React.FC<{
@@ -223,11 +238,12 @@ const PanelCreatePlaylist: React.FC<{
                             />
                         </FormGroup>
                         <FormGroup>
+                            <Label>Список загруженных видео:</Label>
                             <VideoCheckboxContainer>
                                 {videos &&
                                     videos.map((video: Video) => (
-                                        <VideoCheckboxLabel key={video.id}>
-                                            <input
+                                        <VideoCheckboxItem key={video.id}>
+                                            <VideoCheckboxInput
                                                 type="checkbox"
                                                 checked={selectedVideos.includes(
                                                     video,
@@ -236,8 +252,10 @@ const PanelCreatePlaylist: React.FC<{
                                                     handleCheckboxChange(video)
                                                 }
                                             />
-                                            {video.title}
-                                        </VideoCheckboxLabel>
+                                            <VideoCheckboxLabel>
+                                                {video.title}
+                                            </VideoCheckboxLabel>
+                                        </VideoCheckboxItem>
                                     ))}
                             </VideoCheckboxContainer>
                         </FormGroup>

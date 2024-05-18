@@ -3,7 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import { loginUserSuccess, logoutUser } from '../store/actions/userActions'
 import axios from 'axios'
 
-const TokenChecker: React.FC<{ targetRoute: string }> = ({ targetRoute }) => {
+interface TokenCheckerProps {
+    targetRoute: string
+    shouldRedirect?: boolean
+}
+
+const TokenChecker: React.FC<TokenCheckerProps> = ({
+    targetRoute,
+    shouldRedirect,
+}) => {
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -23,7 +31,9 @@ const TokenChecker: React.FC<{ targetRoute: string }> = ({ targetRoute }) => {
                     const { valid } = response.data
                     if (valid) {
                         loginUserSuccess(token)
-                        navigate(targetRoute) // Переход на указанный маршрут
+                        if (shouldRedirect) {
+                            navigate(targetRoute)
+                        }
                     } else {
                         logoutUser()
                         navigate('/login')
@@ -35,7 +45,7 @@ const TokenChecker: React.FC<{ targetRoute: string }> = ({ targetRoute }) => {
         } else {
             navigate('/login')
         }
-    }, [])
+    }, [navigate, targetRoute, shouldRedirect])
 
     return null
 }

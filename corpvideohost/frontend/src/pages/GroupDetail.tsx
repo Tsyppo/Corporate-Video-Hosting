@@ -1,15 +1,13 @@
-import React, { Suspense, useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import React, { Suspense, useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import Layout from '../components/Layout'
 import styled from 'styled-components'
-import ReactDOM from 'react-dom'
 import VideoItems from '../components/VideoItems'
 import PlaylistItem from '../components/PlaylistItem'
 import TokenChecker from '../components/TokenChecker'
+import AccessChecker from '../components/AccessChecker'
 import { useTypedSelector } from '../hooks/useTypedSelector'
 import useAutoLogout from '../hooks/useAutoLogout'
-import { fetchGroupList } from '../store/actions/groupActions'
-import { useDispatch } from 'react-redux'
 import { useActions } from '../hooks/useAction'
 import UserList from '../components/UserList'
 import { User } from '../types/user'
@@ -21,7 +19,10 @@ const LazyPanelCreatePlaylist = React.lazy(
     () => import('../components/PanelCreatePlaylist'),
 )
 const LazyPanelAddVideo = React.lazy(
-    () => import('../components/PanelAddVideo'),
+    () => import('../components/PanelAddVideoToGroup'),
+)
+const LazyPanelAddUserToGroup = React.lazy(
+    () => import('../components/PanelAddUserToGroup'),
 )
 
 const Button = styled.button`
@@ -57,19 +58,28 @@ const Title = styled.h1`
     margin-top: 20px;
     color: ${(props) => props.theme.text};
 `
+const Container = styled.div`
+    display: flex;
+`
 
 const Group: React.FC = () => {
     const users = useTypedSelector((state) => state.user.users)
     const { groups } = useTypedSelector((state) => state.group)
     const userIdString = localStorage.getItem('user')
     const userId = userIdString ? parseInt(userIdString) : null
-    const { fetchListUser, fetchVideoList, fetchGroupList } = useActions()
+    const { fetchListUser, fetchVideoList, fetchGroupList, fetchPlaylistList } =
+        useActions()
 
     const [isPanelAddVideoOpen, setIsPanelAddVideoOpen] = useState(false)
     const [isPanelPlaylistOpen, setIsPanelPlaylistOpen] = useState(false)
     const [isPanelViewWaitingUserListOpen, setIsPanelViewWaitingUserListOpen] =
         useState(false)
+    const [isPanelAddUserToGroupOpen, setIsPanelAddUserToGroupOpen] =
+        useState(false)
     const [groupUsers, setGroupUsers] = useState<User[]>([])
+    const [redirectedByAccessChecker, setRedirectedByAccessChecker] =
+        useState(false)
+    const [shouldRedirect, setShouldRedirect] = useState(true)
 
     useAutoLogout()
 
@@ -77,7 +87,14 @@ const Group: React.FC = () => {
         fetchVideoList()
         fetchListUser()
         fetchGroupList()
+        fetchPlaylistList()
     }, [])
+
+    useEffect(() => {
+        if (redirectedByAccessChecker) {
+            setShouldRedirect(false)
+        }
+    }, [redirectedByAccessChecker])
 
     let loggedInUser = null
     if (userId && users) {
@@ -97,12 +114,15 @@ const Group: React.FC = () => {
         setIsPanelViewWaitingUserListOpen(!isPanelViewWaitingUserListOpen)
     }
 
+    const togglePanelAddUserToGroup = () => {
+        setIsPanelAddUserToGroupOpen(!isPanelAddUserToGroupOpen)
+    }
+
     const { id } = useParams<{ id?: string }>()
 
     if (!groups) {
         return (
             <Layout>
-                {' '}
                 <div>Loading...</div>
             </Layout>
         )
@@ -131,61 +151,84 @@ const Group: React.FC = () => {
 
     return (
         <Layout>
-            <TokenChecker targetRoute={`/group/${group.id}`}></TokenChecker>
-            <MainTitle>{group.title}</MainTitle>
-            <>
-                {role === 'manager' || role === 'admin' ? (
-                    <VipButton onClick={togglePanelPlaylist}>
-                        Создать плейлист
-                    </VipButton>
-                ) : null}
-                {role === 'manager' || role === 'admin' ? (
-                    <VipButton onClick={togglePanelAddVideo}>
-                        Добавить видео
-                    </VipButton>
-                ) : null}
-                {role === 'manager' || role === 'admin' ? (
-                    <VipButton>Добавить пользователя</VipButton>
-                ) : null}
-                {role === 'manager' || role === 'admin' ? (
-                    <VipButton onClick={togglePanelViewWaitingUserList}>
-                        Просмотр заявок
-                    </VipButton>
-                ) : null}
-                <Suspense fallback={<div>Loading...</div>}>
-                    {isPanelViewWaitingUserListOpen && (
-                        <LazyPanelViewWaitingUserList
-                            isPanelOpen={isPanelViewWaitingUserListOpen}
-                            togglePanelViewWaitingUserList={
-                                togglePanelViewWaitingUserList
-                            }
-                            groupId={group.id}
-                        />
-                    )}
-                    {isPanelPlaylistOpen && (
-                        <LazyPanelCreatePlaylist
-                            isPanelOpen={isPanelPlaylistOpen}
-                            togglePanelPlaylist={togglePanelPlaylist}
-                            groupId={group.id}
-                        />
-                    )}
-                    {isPanelAddVideoOpen && (
-                        <LazyPanelAddVideo
-                            isPanelOpen={isPanelAddVideoOpen}
-                            togglePanelAddVideo={togglePanelAddVideo}
-                            groupId={group.id}
-                        />
-                    )}
-                </Suspense>
-            </>
-            <PlaylistItem groupId={group.id} />
-            <Title>Видео</Title>
-            <VideoItems groupId={group.id} />
-            <UserList
-                users={filtredGroupUsers}
-                groupId={group.id}
-                onUserRemoved={handleRemoveUser}
-            />{' '}
+            <Container>
+                <div>
+                    <AccessChecker
+                        user={loggedInUser!}
+                        group={group}
+                        userId={userId}
+                        setRedirectedByAccessChecker={
+                            setRedirectedByAccessChecker
+                        }
+                    />
+                    <MainTitle>{group.title}</MainTitle>
+                    <>
+                        {role === 'manager' || role === 'admin' ? (
+                            <VipButton onClick={togglePanelPlaylist}>
+                                Создать плейлист
+                            </VipButton>
+                        ) : null}
+                        {role === 'manager' || role === 'admin' ? (
+                            <VipButton onClick={togglePanelAddVideo}>
+                                Добавить видео
+                            </VipButton>
+                        ) : null}
+                        {role === 'manager' || role === 'admin' ? (
+                            <VipButton onClick={togglePanelAddUserToGroup}>
+                                Добавить пользователя
+                            </VipButton>
+                        ) : null}
+                        {role === 'manager' || role === 'admin' ? (
+                            <VipButton onClick={togglePanelViewWaitingUserList}>
+                                Просмотр заявок
+                            </VipButton>
+                        ) : null}
+                        <Suspense fallback={<div>Loading...</div>}>
+                            {isPanelViewWaitingUserListOpen && (
+                                <LazyPanelViewWaitingUserList
+                                    isPanelOpen={isPanelViewWaitingUserListOpen}
+                                    togglePanelViewWaitingUserList={
+                                        togglePanelViewWaitingUserList
+                                    }
+                                    groupId={group.id}
+                                />
+                            )}
+                            {isPanelPlaylistOpen && (
+                                <LazyPanelCreatePlaylist
+                                    isPanelOpen={isPanelPlaylistOpen}
+                                    togglePanelPlaylist={togglePanelPlaylist}
+                                    groupId={group.id}
+                                />
+                            )}
+                            {isPanelAddVideoOpen && (
+                                <LazyPanelAddVideo
+                                    isPanelOpen={isPanelAddVideoOpen}
+                                    togglePanelAddVideo={togglePanelAddVideo}
+                                    groupId={group.id}
+                                />
+                            )}
+                            {isPanelAddUserToGroupOpen && (
+                                <LazyPanelAddUserToGroup
+                                    isPanelOpen={isPanelAddUserToGroupOpen}
+                                    togglePanelAddVideo={
+                                        togglePanelAddUserToGroup
+                                    }
+                                    groupId={group.id}
+                                />
+                            )}
+                        </Suspense>
+                    </>
+                    <PlaylistItem groupId={group.id} />
+                    <Title>Видео</Title>
+                    <VideoItems groupId={group.id} />
+                </div>
+
+                <UserList
+                    users={filtredGroupUsers}
+                    groupId={group.id}
+                    onUserRemoved={handleRemoveUser}
+                />
+            </Container>
         </Layout>
     )
 }

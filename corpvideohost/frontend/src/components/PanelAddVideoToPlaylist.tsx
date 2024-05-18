@@ -5,6 +5,10 @@ import { useActions } from '../hooks/useAction'
 import { Video } from '../types/video'
 import { useTypedSelector } from '../hooks/useTypedSelector'
 import { Group } from '../types/group'
+import axios from 'axios'
+import { useLocation } from 'react-router-dom'
+import { User } from '../types/user'
+import { Playlist } from '../types/playlist'
 
 const Button = styled.button`
     height: 40px;
@@ -35,12 +39,14 @@ const ButtonPanel = styled.button`
 `
 
 const ButtonClosePanel = styled(ButtonPanel)`
-    margin-top: 280px;
-    margin-left: 70%;
+    position: absolute;
+    bottom: 39px;
+    right: 30px;
 `
-
 const ContainerPanel = styled.div`
     display: flex;
+    flex-direction: column;
+    align-items: center;
 `
 
 const PanelContainer = styled.div`
@@ -48,11 +54,10 @@ const PanelContainer = styled.div`
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 600px;
-    height: 600px;
+    width: 400px;
+    max-height: 80%;
     padding: 20px;
     border-radius: 10px;
-
     background-color: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(40px);
     z-index: 10000;
@@ -79,13 +84,12 @@ const OverlayContent = styled.div`
 `
 
 const FormContainer = styled.form`
-    width: 520px;
+    width: 100%;
     padding: 20px;
 `
 
 const MainTitle = styled.h1`
     color: ${(props) => props.theme.text};
-    margin-left: 140px;
     text-align: center;
 `
 
@@ -93,35 +97,67 @@ const FormGroup = styled.div`
     margin-bottom: 20px;
 `
 
-const VideoCheckboxContainer = styled.div`
+const VideoCheckboxContainer = styled.ul`
+    max-height: 300px;
+    overflow-y: auto;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+`
+
+const VideoCheckboxItem = styled.li`
     display: flex;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
+    align-items: center;
+    margin-bottom: 10px;
 `
 
 const VideoCheckboxLabel = styled.label`
-    display: block;
-    margin-right: 20px;
-    margin-bottom: 10px;
     font-size: 16px;
     color: ${(props) => props.theme.text};
+    margin-left: 8px;
 `
 
-const PanelAddVideo: React.FC<{
+const VideoCheckboxInput = styled.input`
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: ${(props) => props.theme.headerBackground};
+`
+
+const SearchInput = styled.input`
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid ${(props) => props.theme.headerBackground};
+    border-radius: 5px;
+`
+
+const PanelAddVideoToPlaylist: React.FC<{
     isPanelOpen: boolean
     togglePanelAddVideo: () => void
-    groupId: number
-}> = ({ isPanelOpen, togglePanelAddVideo, groupId }) => {
-    const { fetchVideoListUser, updateGroup } = useActions()
+    playlistId: number
+}> = ({ isPanelOpen, togglePanelAddVideo, playlistId }) => {
+    const { updatePlaylist } = useActions()
     const videos = useTypedSelector((state) => state.video.videos)
     const [selectedVideos, setSelectedVideos] = useState<Video[]>([])
-
+    const [searchTerm, setSearchTerm] = useState('')
     const userIdString = localStorage.getItem('user')
     const userId = userIdString ? parseInt(userIdString) : null
+    const users = useTypedSelector((state) => state.user.users)
+    const { fetchListUser } = useActions()
 
     useEffect(() => {
-        fetchVideoListUser(userId!)
+        fetchListUser()
     }, [])
+
+    let loggedInUser: User | null = null
+
+    if (userId && users) {
+        const foundUser = users.find((user) => user.id === userId)
+        if (foundUser) {
+            loggedInUser = foundUser
+        }
+    }
 
     const handleCheckboxChange = (video: Video) => {
         setSelectedVideos((prevSelectedVideos) =>
@@ -134,39 +170,66 @@ const PanelAddVideo: React.FC<{
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
-        const selectedVideoIds = selectedVideos.map((video) => video.id)
+        try {
+            const response = await axios.get<Playlist>(
+                `http://127.0.0.1:8000/api/playlists/${playlistId}/`,
+            )
+            const currentPlaylist = response.data
 
-        updateGroup(groupId, { videos: selectedVideoIds } as Partial<Group>)
+            const updatedVideoIds = Array.from(
+                new Set([
+                    ...currentPlaylist.videos,
+                    ...selectedVideos.map((video) => video.id),
+                ]),
+            )
+
+            updatePlaylist(playlistId, {
+                videos: updatedVideoIds,
+            } as Partial<Group>)
+        } catch (error) {
+            console.error('Error fetching group:', error)
+        }
     }
+
+    const filteredVideos = videos!.filter((video) =>
+        video.title.toLowerCase().includes(searchTerm.toLowerCase()),
+    )
 
     if (!isPanelOpen) return null
 
     return ReactDOM.createPortal(
         <>
             <Overlay>
-                <OverlayContent onClick={togglePanelAddVideo} />{' '}
+                <OverlayContent onClick={togglePanelAddVideo} />
             </Overlay>
             <PanelContainer>
                 <MainTitle>Добавление видео</MainTitle>
                 <ContainerPanel>
                     <FormContainer onSubmit={handleSubmit}>
+                        <SearchInput
+                            type="text"
+                            placeholder="Поиск видео..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                         <FormGroup>
                             <VideoCheckboxContainer>
-                                {videos &&
-                                    videos.map((video: Video) => (
-                                        <VideoCheckboxLabel key={video.id}>
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedVideos.includes(
-                                                    video,
-                                                )}
-                                                onChange={() =>
-                                                    handleCheckboxChange(video)
-                                                }
-                                            />
+                                {filteredVideos.map((video: Video) => (
+                                    <VideoCheckboxItem key={video.id}>
+                                        <VideoCheckboxInput
+                                            type="checkbox"
+                                            checked={selectedVideos.includes(
+                                                video,
+                                            )}
+                                            onChange={() =>
+                                                handleCheckboxChange(video)
+                                            }
+                                        />
+                                        <VideoCheckboxLabel>
                                             {video.title}
                                         </VideoCheckboxLabel>
-                                    ))}
+                                    </VideoCheckboxItem>
+                                ))}
                             </VideoCheckboxContainer>
                         </FormGroup>
                         <Button type="submit">Добавить</Button>
@@ -181,4 +244,4 @@ const PanelAddVideo: React.FC<{
     )
 }
 
-export default PanelAddVideo
+export default PanelAddVideoToPlaylist

@@ -16,6 +16,7 @@ export enum PlaylistActionTypes {
     FETCH_PLAYLIST_LIST_SUCCESS = 'FETCH_PLAYLIST_LIST_SUCCESS',
     ADD_PLAYLIST = 'ADD_PLAYLIST',
     DELETE_PLAYLIST = 'DELETE_PLAYLIST',
+    UPDATE_PLAYLIST = 'UPDATE_PLAYLIST',
     SET_SEARCH_TERM = 'SET_SEARCH_TERM',
 }
 
@@ -27,6 +28,12 @@ export interface AddPlaylistAction {
     type: PlaylistActionTypes.ADD_PLAYLIST
     payload: Playlist
 }
+
+export interface UpdatePlaylistAction {
+    type: PlaylistActionTypes.UPDATE_PLAYLIST
+    payload: Playlist
+}
+
 export interface DeletePlaylistAction {
     type: PlaylistActionTypes.DELETE_PLAYLIST
     payload: number
@@ -40,5 +47,6 @@ export interface SetSearchTermAction {
 export type PlaylistAction =
     | FetchPlaylistSuccessAction
     | AddPlaylistAction
+    | UpdatePlaylistAction
     | DeletePlaylistAction
     | SetSearchTermAction

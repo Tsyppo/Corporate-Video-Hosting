@@ -35,6 +35,17 @@ const playlistReducer = (
                       )
                     : null,
             }
+        case PlaylistActionTypes.UPDATE_PLAYLIST:
+            return {
+                ...state,
+                playlists: state.playlists
+                    ? state.playlists.map((playlist) =>
+                          playlist.id === action.payload.id
+                              ? action.payload
+                              : playlist,
+                      )
+                    : null,
+            }
         case PlaylistActionTypes.SET_SEARCH_TERM:
             return {
                 ...state,

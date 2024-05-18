@@ -5,6 +5,7 @@ import { Playlist } from '../types/playlist'
 import { useTypedSelector } from '../hooks/useTypedSelector'
 import { useDispatch } from 'react-redux'
 import { fetchPlaylistList } from '../store/actions/playlistActions'
+import { useActions } from '../hooks/useAction'
 
 const PlaylistContainer = styled.div`
     margin-top: 20px;
@@ -14,6 +15,23 @@ const PlaylistContainer = styled.div`
 const PlaylistTitle = styled.h3`
     font-size: 24px;
     color: ${(props) => props.theme.text};
+`
+
+const Button = styled.button`
+    height: 40px;
+    font-size: medium;
+    margin-left: auto;
+    margin-right: 50px;
+    background-color: ${(props) => props.theme.headerBackground};
+    color: ${(props) => props.theme.headerText};
+    transition: background-color 0.3s ease;
+    padding: 0 20px;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    &:hover {
+        background-color: ${(props) => props.theme.buttonBackground};
+    }
 `
 
 const PlaylistObject = styled.div`
@@ -59,6 +77,8 @@ const PlaylistDescription = styled.p`
 `
 
 const StyledLink = styled(Link)`
+    display: flex;
+    align-items: center;
     text-decoration: none;
 `
 interface PlaylistItemProps {
@@ -68,32 +88,43 @@ interface PlaylistItemProps {
 const PlaylistItem: React.FC<PlaylistItemProps> = ({ groupId }) => {
     const dispatch = useDispatch()
     const { playlists } = useTypedSelector((state) => state.playlist)
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                await fetchPlaylistList()(dispatch)
-            } catch (error) {
-                console.error('Error fetching group list:', error)
-            }
-        }
+    const users = useTypedSelector((state) => state.user.users)
+    const userIdString = localStorage.getItem('user')
+    const userId = userIdString ? parseInt(userIdString) : null
+    const { fetchListUser, fetchVideoList, fetchPlaylistList, deletePlaylist } =
+        useActions()
 
-        fetchData()
-    }, [dispatch])
+    useEffect(() => {
+        fetchVideoList()
+        fetchListUser()
+        fetchPlaylistList()
+    }, [])
+
+    let loggedInUser = null
+    if (userId && users) {
+        loggedInUser = users.find((user) => user.id === userId)
+    }
+
+    let role = loggedInUser?.role
 
     const filteredPlaylists = playlists
         ? playlists.filter((playlist: Playlist) => playlist.group === groupId)
         : null
+
+    const handleDeletePlaylist = async (playlistId: number) => {
+        deletePlaylist(playlistId)
+    }
 
     return (
         <PlaylistContainer>
             <PlaylistTitle>Плейлисты:</PlaylistTitle>
             {filteredPlaylists ? (
                 filteredPlaylists.map((playlist: Playlist) => (
-                    <StyledLink
-                        to={`/playlist/${playlist.id}`}
-                        key={playlist.id}
-                    >
-                        <PlaylistObject>
+                    <PlaylistObject>
+                        <StyledLink
+                            to={`/playlist/${playlist.id}`}
+                            key={playlist.id}
+                        >
                             <PlaylistIcon>Icon</PlaylistIcon>
                             <PlaylistInfo>
                                 <PlaylistName>{playlist.title}</PlaylistName>
@@ -101,8 +132,17 @@ const PlaylistItem: React.FC<PlaylistItemProps> = ({ groupId }) => {
                                     {playlist.status}
                                 </PlaylistDescription>
                             </PlaylistInfo>
-                        </PlaylistObject>
-                    </StyledLink>
+                        </StyledLink>
+                        {role === 'manager' || role === 'admin' ? (
+                            <Button
+                                onClick={() =>
+                                    handleDeletePlaylist(playlist.id)
+                                }
+                            >
+                                Удалить
+                            </Button>
+                        ) : null}
+                    </PlaylistObject>
                 ))
             ) : (
                 <p>Loading...</p>

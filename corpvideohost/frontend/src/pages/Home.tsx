@@ -119,6 +119,7 @@ const Home: React.FC = () => {
     const videos = useTypedSelector((state) => state.video.videos)
     const { groups } = useTypedSelector((state) => state.group)
     const { users } = useTypedSelector((state) => state.user)
+    const [filteredGroups, setFilteredGroups] = useState<Group[]>([])
 
     const { fetchVideoList, applyToGroup, cancelApplication, fetchGroupList } =
         useActions()
@@ -131,9 +132,38 @@ const Home: React.FC = () => {
         fetchGroupList()
     }, [])
 
+    useEffect(() => {
+        const filteredGroups = groups?.filter(
+            (group) =>
+                group.members.includes(loggedInUser?.id!) ||
+                group.creator === loggedInUser?.id,
+        )
+
+        const filtered = filteredGroups?.filter((group) => {
+            const creationDate = new Date(group.creation_date)
+            const thirtyDaysAgo = new Date()
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+            return creationDate >= thirtyDaysAgo
+        })
+
+        const sortedGroups = filtered?.sort((a, b) => {
+            const dateA = new Date(a.creation_date).getTime()
+            const dateB = new Date(b.creation_date).getTime()
+            return dateA - dateB
+        })
+
+        setFilteredGroups(sortedGroups!)
+    }, [groups])
+
     if (!videos) {
         return <div>Videos not found</div>
     }
+
+    if (!groups) {
+        return <div>Groups not found</div>
+    }
+
+    const scaleFactor = 0.7
 
     let loggedInUser: User | null = null
 
@@ -143,16 +173,6 @@ const Home: React.FC = () => {
             loggedInUser = foundUser
         }
     }
-
-    const filteredGroups = groups?.filter(
-        (group) =>
-            group.members.includes(loggedInUser?.id!) ||
-            group.creator === loggedInUser?.id,
-    )
-
-    const scaleFactor = 0.7
-
-    const userString = localStorage.getItem('user')
 
     const handleButtonClick = () => {
         navigate('/groups')
