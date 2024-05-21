@@ -4,12 +4,11 @@ from rest_framework import status
 
 from user.models import User
 from video.models import Video
-from .models import Analytics, Group, Playlist, SearchHistory, UserProfile
+from .models import Analytics, Group, Playlist, UserProfile
 from .serializers import (
     AnalyticsSerializer,
     GroupSerializer,
     PlaylistSerializer,
-    SearchHistorySerializer,
     UserProfileSerializer,
 )
 
@@ -224,43 +223,6 @@ def playlist_detail(request, pk):
 
     elif request.method == "DELETE":
         playlist.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-@api_view(["GET", "POST"])
-def search_history_list(request):
-    if request.method == "GET":
-        queryset = SearchHistory.objects.all()
-        serializer = SearchHistorySerializer(queryset, many=True)
-        return Response(serializer.data)
-    elif request.method == "POST":
-        serializer = SearchHistorySerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(["GET", "PUT", "DELETE"])
-def search_history_detail(request, pk):
-    try:
-        search_history = SearchHistory.objects.get(pk=pk)
-    except SearchHistory.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    if request.method == "GET":
-        serializer = SearchHistorySerializer(search_history)
-        return Response(serializer.data)
-
-    elif request.method == "PUT":
-        serializer = SearchHistorySerializer(search_history, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == "DELETE":
-        search_history.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

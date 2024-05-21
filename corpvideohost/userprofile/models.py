@@ -22,7 +22,7 @@ class Group(models.Model):
         User, related_name="waiting_for_groups", blank=True
     )
     creation_date = models.DateTimeField(auto_now_add=True)
-    description = models.TextField()
+    description = models.TextField(max_length=100)
     status = models.CharField(
         max_length=20, choices=GroupStatus.choices, default=GroupStatus.UNLISTED
     )
@@ -78,20 +78,8 @@ class Analytics(models.Model):
         return f"{self.user.username} - {self.view_date} - {self.duration}"
 
 
-class SearchHistory(models.Model):
-    query_text = models.CharField(max_length=255)
-    search_date = models.DateTimeField(auto_now_add=True)
-    user_search = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="user_search"
-    )
-
-    def __str__(self):
-        return f"Search: {self.query_text} by {self.user}"
-
-
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     favorites = models.ManyToManyField(Video)
     groups = models.ManyToManyField(Group)
     playlists = models.ManyToManyField(Playlist)
-    search_history = models.ManyToManyField(SearchHistory)

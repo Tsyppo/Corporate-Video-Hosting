@@ -128,8 +128,12 @@ DATABASES = {
         "HOST": "127.0.0.1",
         "PORT": "5000",
         "OPTIONS": {"options": "-c search_path=public"},
+        "TEST": {
+            "NAME": "test_videohost",
+        },
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -161,12 +165,15 @@ USE_I18N = True
 
 USE_TZ = True
 
+TEST_RUNNER = "django.test.runner.DiscoverRunner"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "frontend/build/static"),
+]
 
 MEDIA_URL = "media/"
 

@@ -363,32 +363,37 @@ const Layout: React.FC<LayoutProps> = React.memo(({ children }) => {
                                 Мои видео
                             </DropdownItem>
                         ) : null}
-                        <DropdownItem onClick={handleLogout}>
+                        <DropdownItem onClick={handleLogout} id="logout">
                             Logout
                         </DropdownItem>
                     </DropdownMenu>
-                    <DropdownButton onClick={() => setIsOpen(!isOpen)}>
+                    <DropdownButton
+                        onClick={() => setIsOpen(!isOpen)}
+                        id="username"
+                    >
                         <LabelUser>{username}</LabelUser>
                     </DropdownButton>
                 </Header>
                 <Sidebar style={{ display: showSidebar ? 'block' : 'none' }}>
                     <Navigation>
                         <NavLink to="/main">
-                            <Icon src={HomeIcon}></Icon>
-                            <Label>{locale.mainNavHome}</Label>
+                            <Icon src={HomeIcon} alt="Home Icon"></Icon>
+                            <Label id="main">{locale.mainNavHome} </Label>
                         </NavLink>
                         <NavLink to="/favorites">
-                            <Icon src={FavoriteIcon}></Icon>
-                            <Label>{locale.mainNavFavorites}</Label>
+                            <Icon src={FavoriteIcon} alt="Favorite Icon"></Icon>
+                            <Label id="favorites">
+                                {locale.mainNavFavorites}
+                            </Label>
                         </NavLink>
 
                         <NavLink to="/groups">
-                            <Icon src={GroupIcon}></Icon>
-                            <Label>{locale.mainNavGroup}</Label>
+                            <Icon src={GroupIcon} alt="Group Icon"></Icon>
+                            <Label id="groups">{locale.mainNavGroup}</Label>
                         </NavLink>
                         <NavLink to="/history">
-                            <Icon src={HistoryIcon}></Icon>
-                            <Label>{locale.mainNavHistory}</Label>
+                            <Icon src={HistoryIcon} alt="History Icon"></Icon>
+                            <Label id="history">{locale.mainNavHistory}</Label>
                         </NavLink>
                     </Navigation>
                 </Sidebar>

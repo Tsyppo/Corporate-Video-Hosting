@@ -16,6 +16,7 @@ const Title = styled.h1`
     margin-top: 150px;
     margin-left: 300px;
 `
+
 const Button = styled.button`
     background-color: ${(props) => props.theme.headerBackground};
     color: ${(props) => props.theme.headerText};
@@ -126,45 +127,6 @@ const Home: React.FC = () => {
 
     const userIdString = localStorage.getItem('user')
     const userId = userIdString ? parseInt(userIdString) : null
-
-    useEffect(() => {
-        fetchVideoList()
-        fetchGroupList()
-    }, [])
-
-    useEffect(() => {
-        const filteredGroups = groups?.filter(
-            (group) =>
-                group.members.includes(loggedInUser?.id!) ||
-                group.creator === loggedInUser?.id,
-        )
-
-        const filtered = filteredGroups?.filter((group) => {
-            const creationDate = new Date(group.creation_date)
-            const thirtyDaysAgo = new Date()
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-            return creationDate >= thirtyDaysAgo
-        })
-
-        const sortedGroups = filtered?.sort((a, b) => {
-            const dateA = new Date(a.creation_date).getTime()
-            const dateB = new Date(b.creation_date).getTime()
-            return dateA - dateB
-        })
-
-        setFilteredGroups(sortedGroups!)
-    }, [groups])
-
-    if (!videos) {
-        return <div>Videos not found</div>
-    }
-
-    if (!groups) {
-        return <div>Groups not found</div>
-    }
-
-    const scaleFactor = 0.7
-
     let loggedInUser: User | null = null
 
     if (userId && users) {
@@ -174,24 +136,51 @@ const Home: React.FC = () => {
         }
     }
 
+    useEffect(() => {
+        fetchVideoList()
+        fetchGroupList()
+    }, [])
+
+    useEffect(() => {
+        const filtered = groups?.filter(
+            (group) =>
+                group.members.includes(loggedInUser?.id!) ||
+                group.creator === loggedInUser?.id,
+        )
+
+        const recentGroups = filtered?.filter((group) => {
+            const creationDate = new Date(group.creation_date)
+            const thirtyDaysAgo = new Date()
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+            return creationDate >= thirtyDaysAgo
+        })
+
+        const sortedGroups = recentGroups?.sort((a, b) => {
+            const dateA = new Date(a.creation_date).getTime()
+            const dateB = new Date(b.creation_date).getTime()
+            return dateA - dateB
+        })
+
+        setFilteredGroups(sortedGroups || [])
+    }, [groups, loggedInUser])
+
+    const scaleFactor = 0.7
+
     const handleButtonClick = () => {
         navigate('/groups')
     }
 
     const getCreatorName = (creatorId: number) => {
-        // Ищем пользователя с указанным ID в списке пользователей
         const creator = users?.find((user) => user.id === creatorId)
         if (creator) {
-            return creator.username // Возвращаем имя пользователя, если найден
+            return creator.username
         }
         return 'Неизвестный пользователь'
     }
 
-    // Функция для обработки подачи заявки на вступление в группу
     const handleApplyToGroup = (groupId: number) => {
-        const userId = loggedInUser?.id // Получаем ID пользователя из localStorage
+        const userId = loggedInUser?.id
         if (userId) {
-            // Передаем ID пользователя и ID группы в действие applyToGroup
             applyToGroup(groupId, [userId])
             console.log(`Applied to group ${groupId}`)
         } else {
@@ -200,9 +189,8 @@ const Home: React.FC = () => {
     }
 
     const handleCancelToGroup = (groupId: number) => {
-        const userId = loggedInUser?.id // Получаем ID пользователя из localStorage
+        const userId = loggedInUser?.id
         if (userId) {
-            // Передаем ID пользователя и ID группы в действие applyToGroup
             cancelApplication(groupId, userId)
             console.log(`Canceled to group ${groupId}`)
         } else {
@@ -211,7 +199,6 @@ const Home: React.FC = () => {
     }
 
     const renderApplyButton = (group: Group) => {
-        // Проверяем, если пользователь уже в группе или в списке ожидающих, не показываем кнопку
         if (group.creator == loggedInUser?.id) {
             return <PForCreator>Вы создатель</PForCreator>
         }
@@ -251,9 +238,9 @@ const Home: React.FC = () => {
                         <div>
                             {filteredGroups.map((group: Group) => (
                                 <GroupContainer>
-                                    <Avatar src={AvatarIcon} />
+                                    <Avatar src={AvatarIcon} alt="AvatarIcon" />
                                     <GroupInfo>
-                                        <GroupName>
+                                        <GroupName id="GroupName">
                                             {group.members.includes(
                                                 loggedInUser?.id!,
                                             ) ? (

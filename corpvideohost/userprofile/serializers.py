@@ -3,7 +3,6 @@ from userprofile.models import (
     Analytics,
     GroupStatus,
     PlaylistStatus,
-    SearchHistory,
     Playlist,
     Group,
     UserProfile,
@@ -36,10 +35,4 @@ class AnalyticsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Analytics
-        fields = "__all__"
-
-
-class SearchHistorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SearchHistory
         fields = "__all__"

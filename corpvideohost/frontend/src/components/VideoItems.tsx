@@ -292,7 +292,7 @@ const VideoItems: React.FC<VideoItemProps> = (props) => {
                                 height={360 * scaleFactor}
                             ></VideoPlayer>
                             <VideoInfoContainer>
-                                <VideoTitle>
+                                <VideoTitle id="VideoTitle">
                                     <StyledLink to={`/video/${video.id}`}>
                                         {video.title}
                                     </StyledLink>

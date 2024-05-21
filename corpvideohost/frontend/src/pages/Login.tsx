@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import styled, { createGlobalStyle, ThemeProvider } from 'styled-components'
 import BackgroundPng from '../assets/images/background.png'
 import { useActions } from '../hooks/useAction'
@@ -99,6 +99,10 @@ const Login: React.FC = () => {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
 
+    useEffect(() => {
+        document.title = 'Login'
+    }, [])
+
     const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setUsername(e.target.value)
     }
@@ -121,6 +125,7 @@ const Login: React.FC = () => {
                     <FormGroup>
                         <Input
                             type="text"
+                            name="username"
                             id="username"
                             value={username}
                             placeholder="Usernsme"
@@ -130,13 +135,16 @@ const Login: React.FC = () => {
                     <FormGroup>
                         <Input
                             type="password"
+                            name="password"
                             id="password"
                             value={password}
                             placeholder="Password"
                             onChange={handlePasswordChange}
                         />
                     </FormGroup>
-                    <Button type="submit">Войти</Button>
+                    <Button type="submit" id="login">
+                        Войти
+                    </Button>
                 </Form>
             </Container>
         </ThemeProvider>

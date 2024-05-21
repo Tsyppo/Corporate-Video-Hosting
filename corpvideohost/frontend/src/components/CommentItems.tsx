@@ -5,6 +5,7 @@ import { useActions } from '../hooks/useAction'
 import { Comment as CommentType } from '../types/comment'
 import AvatarIcon from '../assets/images/avatar.png'
 import { useParams } from 'react-router-dom'
+import { User } from '../types/user'
 
 const Avatar = styled.img`
     height: 50px;
@@ -113,10 +114,22 @@ const Button = styled.button`
 const Answer = styled.div`
     margin-top: 10px;
     margin-left: 80px;
+    position: relative;
+    &:after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -40px;
+        width: 1px;
+        height: 100%;
+        background-color: ${(props) => props.theme.text};
+    }
 `
 
 const CommentItems: React.FC<{ comment: CommentType }> = ({ comment }) => {
     const { fetchListUser, addComment } = useActions()
+    const userIdString = localStorage.getItem('user')
+    const userId = userIdString ? parseInt(userIdString) : null
     const users = useTypedSelector((state) => state.user.users)
     const [replyingTo, setReplyingTo] = useState<number | null>(null)
     const [replyText, setReplyText] = useState('')
@@ -131,12 +144,14 @@ const CommentItems: React.FC<{ comment: CommentType }> = ({ comment }) => {
         return <div>Loading...</div>
     }
 
-    const userObjectFromStorage = localStorage.getItem('user')
-        ? JSON.parse(localStorage.getItem('user')!)
-        : null
+    let loggedInUser: User | null = null
 
-    const currentUser = users.find((user) => user.id === comment.user)
-
+    if (userId && users) {
+        const foundUser = users.find((user) => user.id === userId)
+        if (foundUser) {
+            loggedInUser = foundUser
+        }
+    }
     const handleReply = (commentId: number) => {
         setReplyingTo((prev) => (prev === commentId ? null : commentId))
     }
@@ -153,7 +168,7 @@ const CommentItems: React.FC<{ comment: CommentType }> = ({ comment }) => {
         formData.append('text', replyText)
         formData.append('liked_by_user', 'false')
         formData.append('likes_count', '0')
-        formData.append('user', userObjectFromStorage?.id.toString() ?? '')
+        formData.append('user', loggedInUser?.id.toString() ?? '')
         formData.append('video', id ?? '')
         formData.append('parent_comment', replyingTo?.toString() ?? '')
 
@@ -179,12 +194,14 @@ const CommentItems: React.FC<{ comment: CommentType }> = ({ comment }) => {
             <CommentContainer>
                 <FlexContainer>
                     <AvatarContainer>
-                        <Avatar src={AvatarIcon} />
+                        <Avatar src={AvatarIcon} alt="AvatarIcon" />
                     </AvatarContainer>
                     <div>
                         <UserInfo>
                             <UserName>
-                                {currentUser ? currentUser.username : 'Unknown'}
+                                {loggedInUser
+                                    ? loggedInUser.username
+                                    : 'Unknown'}
                             </UserName>
                             <CommentMeta>
                                 {formatDate(comment.created_at)}

@@ -50,6 +50,7 @@ class User(AbstractBaseUser):
     status = models.CharField(
         max_length=20, choices=UserStatus.choices, default=UserStatus.ACTIVE
     )
+    value = models.IntegerField(default=0)  # Добавлено поле value
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -59,6 +60,13 @@ class User(AbstractBaseUser):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
+
+    def increase_value(self, amount):
+        self.value += amount
+        self.save()
+
+    def __str__(self):
+        return self.email
 
 
 # {

@@ -21,7 +21,7 @@ class VideoStatus(models.TextChoices):
 
 class Video(models.Model):
     title = models.CharField(max_length=100)
-    description = models.TextField()
+    description = models.TextField(max_length=1000)
     upload_date = models.DateTimeField(auto_now_add=True)
     video = models.FileField(storage=YandexStorage())
     status = models.CharField(

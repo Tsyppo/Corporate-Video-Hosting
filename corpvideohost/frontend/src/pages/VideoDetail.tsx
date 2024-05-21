@@ -20,9 +20,7 @@ const VideoTitle = styled.h1`
     margin: 0;
     color: ${(props) => props.theme.text};
 `
-const CommentTitle = styled(VideoTitle)`
-    margin-top: 100px;
-`
+const CommentTitle = styled(VideoTitle)``
 
 const VideoPlace = styled.video`
     height: 715px;
@@ -71,13 +69,13 @@ const ButtonAnaliz = styled(Button)`
 const ButtonAddFav = styled(ButtonAnaliz)<{ isFavorited: boolean }>`
     margin-left: 0;
     background-color: ${(props) =>
-        props.isFavorited ? '#858585' : props.theme.headerBackground};
+        props.isFavorited ? '#000000' : props.theme.headerBackground};
 `
 
 const ButtonAddFavForUser = styled(ButtonAnaliz)<{ isFavorited: boolean }>`
     margin-left: auto;
     background-color: ${(props) =>
-        props.isFavorited ? '#858585' : props.theme.headerBackground};
+        props.isFavorited ? '#000000' : props.theme.headerBackground};
 `
 
 const FlexContainer = styled.form`
@@ -183,7 +181,11 @@ const Video: React.FC = () => {
     }, [userProfile])
 
     if (!videos) {
-        return <div>Video loading...</div>
+        return (
+            <Layout>
+                <div>Video loading...</div>
+            </Layout>
+        )
     }
 
     const video: VideoType | undefined = videos?.find(
@@ -191,7 +193,11 @@ const Video: React.FC = () => {
     )
 
     if (!video) {
-        return <div>Video not found</div>
+        return (
+            <Layout>
+                <div>Video not found</div>
+            </Layout>
+        )
     }
 
     const handleAddFavorite = () => {
@@ -229,7 +235,6 @@ const Video: React.FC = () => {
         <Layout>
             <TokenChecker targetRoute={`/video/${video.id}`}></TokenChecker>
             <Container>
-                <h1></h1>
                 <VideoPlayer
                     video={video}
                     controls={true}
@@ -245,6 +250,7 @@ const Video: React.FC = () => {
                                 Аналитика
                             </ButtonAnaliz>
                             <ButtonAddFav
+                                id="ButtonAddFav"
                                 onClick={handleAddFavorite}
                                 isFavorited={isFavorited}
                             >
@@ -255,6 +261,7 @@ const Video: React.FC = () => {
                         </>
                     ) : (
                         <ButtonAddFavForUser
+                            id="ButtonAddFav"
                             onClick={handleAddFavorite}
                             isFavorited={isFavorited}
                         >

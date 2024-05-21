@@ -245,7 +245,7 @@ const GroupList: React.FC = () => {
                     <div>
                         {filteredGroups.map((group: Group) => (
                             <GroupContainer>
-                                <Avatar src={AvatarIcon} />
+                                <Avatar src={AvatarIcon} alt="AvatarIcon" />
                                 <GroupInfo>
                                     <GroupName>
                                         {group.members.includes(

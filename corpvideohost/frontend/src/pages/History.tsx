@@ -148,7 +148,7 @@ const History: React.FC = () => {
             ) : (
                 <Container>
                     <MainTitle>История просмотров</MainTitle>
-                    <Button onClick={handleClearHistory}>
+                    <Button id="clear" onClick={handleClearHistory}>
                         Очистить историю
                     </Button>
                 </Container>
